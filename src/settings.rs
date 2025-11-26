@@ -1,7 +1,7 @@
 use crate::traits::Float;
 
 #[derive(Debug, Clone)]
-pub struct Settings<F: Float> {
+pub struct FA2Settings<F: Float> {
     pub(crate) lin_log_mode: bool,
     pub(crate) edge_weight_influence: F,
     pub(crate) gravity: F,
@@ -11,7 +11,7 @@ pub struct Settings<F: Float> {
     pub(crate) slow_down: F,
 }
 
-impl<F: Float> Default for Settings<F> {
+impl<F: Float> Default for FA2Settings<F> {
     fn default() -> Self {
         Self {
             lin_log_mode: false,
@@ -25,7 +25,7 @@ impl<F: Float> Default for Settings<F> {
     }
 }
 
-impl<F: Float> Settings<F> {
+impl<F: Float> FA2Settings<F> {
     pub fn from_graph_order(order: usize) -> Self {
         Self {
             strong_gravity_mode: true,
@@ -43,11 +43,11 @@ mod tests {
 
     #[test]
     fn test_from_graph_order() {
-        let settings = Settings::<f32>::from_graph_order(32);
+        let settings = FA2Settings::<f32>::from_graph_order(32);
 
         assert_eq!(settings.slow_down, 4.465736);
 
-        let settings = Settings::<f64>::from_graph_order(32);
+        let settings = FA2Settings::<f64>::from_graph_order(32);
 
         assert_eq!(settings.slow_down, 4.465735902799727);
     }

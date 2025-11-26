@@ -1,5 +1,5 @@
 [package]
-name = "rust-fa2"
+name = "fa2"
 version = "0.1.0"
 edition = "2021"
 authors = [
@@ -15,3 +15,9 @@ license = "MIT"
 
 [dependencies]
 num = "0.4.3"
+
+[dev-dependencies]
+anyhow = "1.0.100"
+clap = { version = "4.5.53", features = ["derive"] }
+rand = "0.9.2"
+simd-csv = "0.10.2"

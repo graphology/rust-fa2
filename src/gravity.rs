@@ -1,7 +1,7 @@
-use crate::settings::Settings;
+use crate::settings::FA2Settings;
 use crate::traits::Float;
 
-pub fn apply_gravity<F: Float>(settings: &Settings<F>, nodes: &[F], out: &mut [F]) {
+pub fn apply_gravity<F: Float>(settings: &FA2Settings<F>, nodes: &[F], out: &mut [F]) {
     let g = settings.gravity / settings.scaling_ratio;
 
     for (node, out_node) in nodes.chunks(3).zip(out.chunks_mut(2)) {
@@ -33,7 +33,7 @@ mod tests {
 
     #[test]
     fn test_apply_gravity() {
-        let settings = Settings::<f32>::default();
+        let settings = FA2Settings::<f32>::default();
 
         let nodes = [1.0, 3.0, 1.0, 2.0, -5.0, 1.5];
         let mut out = [1.0, 3.0, 2.0, -5.0];
