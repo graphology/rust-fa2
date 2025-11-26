@@ -16,7 +16,7 @@ impl<F: Float> FA2Layout<F> {
         Self { settings, data }
     }
 
-    fn epoch(&mut self) {
+    fn epoch(&mut self) -> F {
         self.data.reset();
 
         apply_pairwise_repulsion(&self.settings, &self.data.nodes, &mut self.data.deltas);
@@ -27,13 +27,14 @@ impl<F: Float> FA2Layout<F> {
             &self.data.edges,
             &mut self.data.deltas,
         );
+
         apply_forces(
             &self.settings,
             &mut self.data.nodes,
             &self.data.deltas,
             &self.data.last_deltas,
             &mut self.data.convergences,
-        );
+        )
     }
 
     pub fn run(&mut self, iterations: usize) {

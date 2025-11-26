@@ -25,15 +25,17 @@ pub fn apply_forces<F: Float>(
         let last_delta_x = last_deltas[o2];
         let last_delta_y = last_deltas[o2 + 1];
 
-        let movement = ((last_delta_x - delta_x).powi(2) + (last_delta_y - delta_y).powi(2)).sqrt();
+        let mut swinging =
+            mass * ((last_delta_x - delta_x).powi(2) + (last_delta_y - delta_y).powi(2)).sqrt();
+        swinging = F::one() + swinging.sqrt();
 
-        let swinging = F::one() + (mass * movement).sqrt();
-        let traction = movement / two;
-        let speed = (*convergence * (F::one() + traction).ln()) / swinging;
+        let traction =
+            ((last_delta_x + delta_x).powi(2) + (last_delta_y + delta_y).powi(2)).sqrt() / two;
+
+        let speed = *convergence * traction.ln_1p() / swinging;
 
         // Updating convergence
-        *convergence = (((last_delta_x - delta_x).powi(2) + (last_delta_y - delta_y).powi(2))
-            / swinging)
+        *convergence = (speed * ((delta_x.powi(2) + delta_y.powi(2)) / swinging))
             .sqrt()
             .min(F::one());
 
