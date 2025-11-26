@@ -1,0 +1,16 @@
+[package]
+name = "rust-fa2"
+version = "0.1.0"
+edition = "2021"
+authors = [
+  "Guillaume Plique <guillaume.plique@sciencespo.fr>"
+]
+description = "Rust implementation of the Force Atlas 2 layout algorithm."
+documentation = "https://github.com/graphology/rust-fa2#readme"
+homepage = "https://github.com/graphology/rust-fa2"
+repository = "https://github.com/graphology/rust-fa2"
+readme = "README.md"
+keywords = ["graph", "layout", "forceatlas"]
+license = "MIT"
+
+[dependencies]
