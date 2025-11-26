@@ -1,4 +1,6 @@
+mod attraction;
 mod builder;
+mod forces;
 mod gravity;
 mod layout;
 mod repulsion;

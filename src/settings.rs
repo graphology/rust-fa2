@@ -2,11 +2,11 @@ use crate::traits::Float;
 
 #[derive(Debug, Clone)]
 pub struct FA2Settings<F: Float> {
-    pub(crate) lin_log_mode: bool,
+    // pub(crate) lin_log_mode: bool,
     pub(crate) edge_weight_influence: F,
     pub(crate) gravity: F,
     pub(crate) strong_gravity_mode: bool,
-    pub(crate) outbound_attraction_distribution: bool,
+    // pub(crate) outbound_attraction_distribution: bool,
     pub(crate) scaling_ratio: F,
     pub(crate) slow_down: F,
 }
@@ -14,11 +14,11 @@ pub struct FA2Settings<F: Float> {
 impl<F: Float> Default for FA2Settings<F> {
     fn default() -> Self {
         Self {
-            lin_log_mode: false,
+            // lin_log_mode: false,
             edge_weight_influence: F::one(),
             gravity: F::one(),
             strong_gravity_mode: false,
-            outbound_attraction_distribution: false,
+            // outbound_attraction_distribution: false,
             scaling_ratio: F::one(),
             slow_down: F::one(),
         }

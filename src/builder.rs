@@ -5,6 +5,7 @@ pub struct FA2Data<F: Float> {
     pub(crate) nodes: Vec<F>,       // Layout is: (x, y, mass)
     pub(crate) deltas: Vec<F>,      // Layout is: (dx, dy)
     pub(crate) last_deltas: Vec<F>, // Layout is: (old_dx, old_dy)
+    pub(crate) convergences: Vec<F>,
     pub(crate) edges: Vec<(usize, usize, F)>,
 }
 
@@ -14,6 +15,7 @@ impl<F: Float> Default for FA2Data<F> {
             nodes: Vec::new(),
             deltas: Vec::new(),
             last_deltas: Vec::new(),
+            convergences: Vec::new(),
             edges: Vec::new(),
         }
     }
@@ -41,6 +43,8 @@ impl<F: Float> FA2Data<F> {
         self.last_deltas.push(F::zero());
         self.last_deltas.push(F::zero());
 
+        self.convergences.push(F::one());
+
         index
     }
 
@@ -53,5 +57,13 @@ impl<F: Float> FA2Data<F> {
 
     pub fn add_edge(&mut self, i: usize, j: usize) {
         self.add_edge_with_weight(i, j, F::one());
+    }
+
+    pub(crate) fn reset(&mut self) {
+        std::mem::swap(&mut self.deltas, &mut self.last_deltas);
+
+        for x in self.deltas.iter_mut() {
+            *x = F::zero();
+        }
     }
 }

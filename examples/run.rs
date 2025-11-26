@@ -16,6 +16,10 @@ struct Args {
 
     /// Index of target column
     target: usize,
+
+    /// Number of iterations to run
+    #[arg(long, default_value = "10")]
+    iterations: usize,
 }
 
 impl Args {
@@ -63,13 +67,22 @@ fn main() -> anyhow::Result<()> {
     let settings = FA2Settings::<f32>::from_graph_order(layout_data.order());
     let mut layout = FA2Layout::with_settings(settings, layout_data);
 
-    layout.run(1);
+    layout.run(args.iterations);
 
     let mut writer = simd_csv::Writer::from_writer(std::io::stdout());
-    writer.write_record_no_quoting(["x", "y"])?;
+    writer.write_record_no_quoting(["node", "x", "y"])?;
 
-    for (x, y) in layout.positions() {
-        writer.write_record_no_quoting([x.to_string(), y.to_string()])?;
+    let reverse_node_index = node_index
+        .into_iter()
+        .map(|(k, v)| (v, k))
+        .collect::<HashMap<_, _>>();
+
+    for (i, (x, y)) in layout.positions().enumerate() {
+        writer.write_record_no_quoting([
+            reverse_node_index.get(&i).unwrap(),
+            x.to_string().as_bytes(),
+            y.to_string().as_bytes(),
+        ])?;
     }
 
     writer.flush()?;

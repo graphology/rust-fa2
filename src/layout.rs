@@ -1,4 +1,6 @@
+use crate::attraction::apply_attraction;
 use crate::builder::FA2Data;
+use crate::forces::apply_forces;
 use crate::gravity::apply_gravity;
 use crate::repulsion::apply_pairwise_repulsion;
 use crate::settings::FA2Settings;
@@ -15,8 +17,23 @@ impl<F: Float> FA2Layout<F> {
     }
 
     fn epoch(&mut self) {
+        self.data.reset();
+
         apply_pairwise_repulsion(&self.settings, &self.data.nodes, &mut self.data.deltas);
         apply_gravity(&self.settings, &self.data.nodes, &mut self.data.deltas);
+        apply_attraction(
+            &self.settings,
+            &self.data.nodes,
+            &self.data.edges,
+            &mut self.data.deltas,
+        );
+        apply_forces(
+            &self.settings,
+            &mut self.data.nodes,
+            &self.data.deltas,
+            &self.data.last_deltas,
+            &mut self.data.convergences,
+        );
     }
 
     pub fn run(&mut self, iterations: usize) {
