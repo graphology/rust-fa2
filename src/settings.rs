@@ -1,14 +1,14 @@
-use num::Float;
+use crate::traits::Float;
 
 #[derive(Debug, Clone)]
 pub struct Settings<F: Float> {
-    lin_log_mode: bool,
-    edge_weight_influence: F,
-    gravity: F,
-    strong_gravity_mode: bool,
-    outbound_attraction_distribution: bool,
-    scaling_ratio: F,
-    slow_down: F,
+    pub(crate) lin_log_mode: bool,
+    pub(crate) edge_weight_influence: F,
+    pub(crate) gravity: F,
+    pub(crate) strong_gravity_mode: bool,
+    pub(crate) outbound_attraction_distribution: bool,
+    pub(crate) scaling_ratio: F,
+    pub(crate) slow_down: F,
 }
 
 impl<F: Float> Default for Settings<F> {
@@ -27,14 +27,13 @@ impl<F: Float> Default for Settings<F> {
 
 impl<F: Float> Settings<F> {
     pub fn from_graph_order(order: usize) -> Self {
-        let mut settings = Self::default();
-
-        settings.strong_gravity_mode = true;
-        settings.gravity = F::from(0.05).unwrap();
-        settings.scaling_ratio = F::from(10.0).unwrap();
-        settings.slow_down = F::one() + F::from((order as f64).ln()).unwrap();
-
-        settings
+        Self {
+            strong_gravity_mode: true,
+            gravity: F::from(0.05).unwrap(),
+            scaling_ratio: F::from(10.0).unwrap(),
+            slow_down: F::one() + F::from((order as f64).ln()).unwrap(),
+            ..Default::default()
+        }
     }
 }
 
