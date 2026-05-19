@@ -20,7 +20,7 @@ pub fn apply_attraction<F: Float>(
         out[source * 2] += x_dist * factor;
         out[source * 2 + 1] += y_dist * factor;
 
-        out[target * 2] += x_dist * factor;
-        out[target * 2 + 1] += y_dist * factor;
+        out[target * 2] -= x_dist * factor;
+        out[target * 2 + 1] -= y_dist * factor;
     }
 }
