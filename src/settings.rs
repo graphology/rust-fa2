@@ -1,7 +1,14 @@
 use crate::traits::Float;
 
 #[derive(Debug, Clone)]
+pub enum RepulsionMode<F: Float> {
+    Pairwise,
+    BarnesHut { theta: F },
+}
+
+#[derive(Debug, Clone)]
 pub struct FA2Settings<F: Float> {
+    pub(crate) repulsion_mode: RepulsionMode<F>,
     // pub(crate) lin_log_mode: bool,
     pub(crate) edge_weight_influence: F,
     pub(crate) gravity: F,
@@ -15,6 +22,7 @@ impl<F: Float> Default for FA2Settings<F> {
     // Ref: https://github.com/graphology/graphology/blob/master/src/layout-forceatlas2/defaults.js
     fn default() -> Self {
         Self {
+            repulsion_mode: RepulsionMode::Pairwise,
             // lin_log_mode: false,
             edge_weight_influence: F::one(),
             gravity: F::one(),

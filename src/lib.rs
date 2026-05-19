@@ -1,4 +1,5 @@
 mod attraction;
+mod barnes_hut;
 mod builder;
 mod forces;
 mod gravity;
