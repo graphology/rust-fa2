@@ -20,6 +20,10 @@ struct Args {
     /// Number of iterations to run
     #[arg(long, default_value = "10")]
     iterations: usize,
+
+    /// Verbose
+    #[arg(short, long)]
+    verbose: bool,
 }
 
 impl Args {
@@ -65,9 +69,18 @@ fn main() -> anyhow::Result<()> {
     }
 
     let settings = FA2Settings::<f32>::from_graph_order(layout_data.order());
+
+    if args.verbose {
+        eprintln!("{:?}", settings);
+    }
+
     let mut layout = FA2Layout::with_settings(settings, layout_data);
 
-    layout.run(args.iterations);
+    for i in 0..args.iterations {
+        let energy = layout.epoch();
+
+        eprintln!("Epoch n°{}, energy={}", i + 1, energy);
+    }
 
     let mut writer = simd_csv::Writer::from_writer(std::io::stdout());
     writer.write_record_no_quoting(["node", "x", "y"])?;
