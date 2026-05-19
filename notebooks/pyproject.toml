@@ -1,0 +1,10 @@
+[project]
+name = "notebooks"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+    "ipysigma==0.24.6",
+    "jupyterlab==4.5.7",
+    "networkx==2.8.8",
+    "pelote==0.8.2",
+]
