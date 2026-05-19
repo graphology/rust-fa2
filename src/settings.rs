@@ -31,7 +31,7 @@ impl<F: Float> FA2Settings<F> {
             strong_gravity_mode: true,
             gravity: F::from(0.05).unwrap(),
             scaling_ratio: F::from(10.0).unwrap(),
-            slow_down: F::one() + F::from((order as f64).ln()).unwrap(),
+            slow_down: F::one() + F::from(order).unwrap().ln(),
             ..Default::default()
         }
     }

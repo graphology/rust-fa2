@@ -7,6 +7,7 @@ pub fn apply_attraction<F: Float>(
     edges: &[(usize, usize, F)],
     out: &mut [F],
 ) {
+    // TODO: plug outbound_attraction_distribution
     let coefficient = F::one();
 
     for (source, target, weight) in edges {

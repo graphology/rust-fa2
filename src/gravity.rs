@@ -13,6 +13,7 @@ pub fn apply_gravity<F: Float>(settings: &FA2Settings<F>, nodes: &[F], out: &mut
 
         let distance = (x.powi(2) + y.powi(2)).sqrt();
 
+        // TODO: make this branchless
         if distance > F::zero() {
             factor = settings.scaling_ratio * mass * g;
 
