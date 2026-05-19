@@ -72,6 +72,40 @@ impl<F: Float> FA2Data<F> {
         self.add_edge_with_weight(i, j, F::one());
     }
 
+    pub(crate) fn positions_extent(&self) -> Option<(F, F, F, F)> {
+        let mut extent = None;
+
+        for node in self.nodes.chunks(3) {
+            let x = node[0];
+            let y = node[1];
+
+            match extent.as_mut() {
+                None => {
+                    extent = Some((x, x, y, y));
+                }
+                Some((min_x, max_x, min_y, max_y)) => {
+                    if x < *min_x {
+                        *min_x = x;
+                    }
+
+                    if x > *max_x {
+                        *max_x = x;
+                    }
+
+                    if y < *min_y {
+                        *min_y = y;
+                    }
+
+                    if y > *max_y {
+                        *max_y = y;
+                    }
+                }
+            }
+        }
+
+        extent
+    }
+
     #[inline]
     pub(crate) fn reset(&mut self) {
         std::mem::swap(&mut self.deltas, &mut self.last_deltas);
@@ -79,5 +113,24 @@ impl<F: Float> FA2Data<F> {
         for x in self.deltas.iter_mut() {
             *x = F::zero();
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_positions_extent() {
+        let mut data = FA2Data::<f32>::new();
+        data.add_node(1.0, -3.0);
+        data.add_node(-1.0, 4.0);
+        data.add_node(6.0, 1.0);
+        data.add_node(9.0, 31.0);
+        data.add_node(1.0, 3.0);
+
+        let extent = data.positions_extent();
+
+        assert_eq!(extent, Some((-1.0, 9.0, -3.0, 31.0)));
     }
 }
