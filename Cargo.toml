@@ -1,6 +1,7 @@
 [package]
 name = "fa2"
 version = "0.1.0"
+rust-version = "1.83.0"
 edition = "2021"
 authors = [
   "Guillaume Plique <guillaume.plique@sciencespo.fr>"
