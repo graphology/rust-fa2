@@ -961,10 +961,10 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "ipysigma", specifier = ">=0.24.6" },
-    { name = "jupyterlab", specifier = ">=4.5.7" },
-    { name = "networkx", specifier = ">=2.8.8" },
-    { name = "pelote", specifier = ">=0.8.2" },
+    { name = "ipysigma", specifier = "==0.24.6" },
+    { name = "jupyterlab", specifier = "==4.5.7" },
+    { name = "networkx", specifier = "==2.8.8" },
+    { name = "pelote", specifier = "==0.8.2" },
 ]
 
 [[package]]
