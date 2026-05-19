@@ -1,3 +1,4 @@
+// Ref: https://github.com/graphology/graphology/blob/master/src/layout-forceatlas2/helpers.js
 use crate::traits::Float;
 
 #[derive(Debug)]

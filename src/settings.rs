@@ -12,6 +12,7 @@ pub struct FA2Settings<F: Float> {
 }
 
 impl<F: Float> Default for FA2Settings<F> {
+    // Ref: https://github.com/graphology/graphology/blob/master/src/layout-forceatlas2/defaults.js
     fn default() -> Self {
         Self {
             // lin_log_mode: false,
@@ -26,6 +27,7 @@ impl<F: Float> Default for FA2Settings<F> {
 }
 
 impl<F: Float> FA2Settings<F> {
+    // Ref: https://github.com/graphology/graphology/blob/249ec5e668ff5e89bf37a10330981579f8759525/src/layout-forceatlas2/index.js#L87
     pub fn from_graph_order(order: usize) -> Self {
         Self {
             strong_gravity_mode: true,

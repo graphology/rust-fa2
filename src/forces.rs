@@ -12,8 +12,8 @@ pub fn apply_forces<F: Float>(
     let two = F::from(2.0).unwrap();
 
     for (o1, convergence) in convergences.iter_mut().enumerate() {
-        let o3 = o1 * 3;
         let o2 = o1 * 2;
+        let o3 = o1 * 3;
 
         let x = nodes[o3];
         let y = nodes[o3 + 1];
@@ -32,16 +32,18 @@ pub fn apply_forces<F: Float>(
         let traction =
             ((last_delta_x + delta_x).powi(2) + (last_delta_y + delta_y).powi(2)).sqrt() / two;
 
-        let speed = *convergence * traction.ln_1p() / swinging;
+        let mut speed = *convergence * traction.ln_1p() / swinging;
 
         // Updating convergence
         *convergence = (speed * ((delta_x.powi(2) + delta_y.powi(2)) / swinging))
             .sqrt()
             .min(F::one());
 
+        speed /= settings.slow_down;
+
         // Updating node position
-        let new_x = x + delta_x * (speed / settings.slow_down);
-        let new_y = y + delta_y * (speed / settings.slow_down);
+        let new_x = x + delta_x * speed;
+        let new_y = y + delta_y * speed;
 
         energy += (x - new_x).abs() + (y - new_y).abs();
 
