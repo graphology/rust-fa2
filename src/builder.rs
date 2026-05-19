@@ -27,6 +27,16 @@ impl<F: Float> FA2Data<F> {
         Self::default()
     }
 
+    pub fn with_capacity(nodes: usize, edges: usize) -> Self {
+        Self {
+            nodes: Vec::with_capacity(nodes * 3),
+            deltas: Vec::with_capacity(nodes * 2),
+            last_deltas: Vec::with_capacity(nodes * 2),
+            convergences: Vec::with_capacity(nodes),
+            edges: Vec::with_capacity(edges),
+        }
+    }
+
     pub fn order(&self) -> usize {
         self.nodes.len() / 3
     }
@@ -49,6 +59,7 @@ impl<F: Float> FA2Data<F> {
         index
     }
 
+    #[inline]
     pub fn add_edge_with_weight(&mut self, i: usize, j: usize, weight: F) {
         self.nodes[i * 3 + 2] += weight;
         self.nodes[j * 3 + 2] += weight;
@@ -56,10 +67,12 @@ impl<F: Float> FA2Data<F> {
         self.edges.push((i, j, weight));
     }
 
+    #[inline]
     pub fn add_edge(&mut self, i: usize, j: usize) {
         self.add_edge_with_weight(i, j, F::one());
     }
 
+    #[inline]
     pub(crate) fn reset(&mut self) {
         std::mem::swap(&mut self.deltas, &mut self.last_deltas);
 
