@@ -22,14 +22,15 @@ pub fn apply_pairwise_repulsion<F: Float>(settings: &FA2Settings<F>, nodes: &[F]
 
             let distance = (x_dist.powi(2) + y_dist.powi(2)).sqrt();
 
+            // TODO: optimize away this branch
             if distance > F::zero() {
                 let factor = (settings.scaling_ratio * m1 * m2) / distance / distance;
 
                 out[n1 * 2] += x_dist * factor;
                 out[n1 * 2 + 1] += y_dist * factor;
 
-                out[n2 * 2] += x_dist * factor;
-                out[n2 * 2 + 1] += y_dist * factor;
+                out[n2 * 2] -= x_dist * factor;
+                out[n2 * 2 + 1] -= y_dist * factor;
             }
         }
     }
