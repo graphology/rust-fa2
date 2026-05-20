@@ -99,7 +99,7 @@ fn main() -> anyhow::Result<()> {
         .collect::<HashMap<_, _>>();
 
     for (i, (x, y)) in layout_data.positions().enumerate() {
-        writer.write_record_no_quoting([
+        writer.write_record([
             reverse_node_index.get(&i).unwrap(),
             x.to_string().as_bytes(),
             y.to_string().as_bytes(),
