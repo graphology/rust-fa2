@@ -8,7 +8,7 @@ pub fn apply_forces<F: Float>(
     last_deltas: &[F],
     convergences: &mut [F],
 ) -> F {
-    let mut energy = F::zero();
+    let mut total_movement = F::zero();
     let two = F::from(2.0).unwrap();
 
     for (o1, convergence) in convergences.iter_mut().enumerate() {
@@ -45,11 +45,11 @@ pub fn apply_forces<F: Float>(
         let new_x = x + delta_x * speed;
         let new_y = y + delta_y * speed;
 
-        energy += (x - new_x).abs() + (y - new_y).abs();
+        total_movement += (x - new_x).abs() + (y - new_y).abs();
 
         nodes[o3] = new_x;
         nodes[o3 + 1] = new_y;
     }
 
-    energy
+    total_movement
 }

@@ -77,9 +77,9 @@ fn main() -> anyhow::Result<()> {
     let mut layout = FA2Layout::with_settings(settings, layout_data);
 
     for i in 0..args.iterations {
-        let energy = layout.epoch();
+        let movement = layout.epoch();
 
-        eprintln!("Epoch n°{}, energy={}", i + 1, energy);
+        eprintln!("Epoch n°{}, movement={}", i + 1, movement);
     }
 
     let mut writer = simd_csv::Writer::from_writer(std::io::stdout());
