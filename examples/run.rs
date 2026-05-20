@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use std::fs::File;
+use std::fs::{self, File};
 use std::io::Write;
 
 use clap::Parser;
@@ -20,6 +20,10 @@ struct Args {
     /// Number of iterations to run
     #[arg(long, default_value = "10")]
     iterations: usize,
+
+    /// Dump layout state every n iteration
+    #[arg(long)]
+    dump_every: Option<usize>,
 
     /// Just apply a circular layout and exit
     #[arg(long)]
@@ -78,6 +82,11 @@ fn main() -> anyhow::Result<()> {
         eprintln!("{:?}", settings);
     }
 
+    if args.dump_every.is_some() {
+        fs::remove_dir_all("dump")?;
+        fs::create_dir_all("dump")?;
+    }
+
     if args.circular {
         layout_data.apply_circular_layout();
     } else {
@@ -86,7 +95,19 @@ fn main() -> anyhow::Result<()> {
         for i in 0..args.iterations {
             let movement = layout.epoch();
 
-            eprintln!("Epoch n°{}, movement={}", i + 1, movement);
+            if args.verbose {
+                eprintln!("Epoch n°{}, movement={}", i + 1, movement);
+            }
+
+            if let Some(every) = args.dump_every {
+                if i % every == 0 {
+                    dump(
+                        File::create(&format!("dump/{:>05}.csv", i))?,
+                        &node_index,
+                        layout.data(),
+                    )?;
+                }
+            }
         }
     }
 

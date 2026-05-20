@@ -37,6 +37,10 @@ impl<'d, F: Float> FA2Layout<'d, F> {
         )
     }
 
+    pub fn data(&self) -> &FA2Data<F> {
+        &self.data
+    }
+
     pub fn run(&mut self, iterations: usize) {
         for _ in 0..iterations {
             self.epoch();
