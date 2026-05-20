@@ -99,7 +99,15 @@ pub struct BarnesHutTree<F: Float> {
 }
 
 impl<F: Float> BarnesHutTree<F> {
-    pub fn new(extent: (F, F, F, F)) -> Self {
+    pub fn with_capacity(capacity: usize) -> Self {
+        Self {
+            regions: Vec::with_capacity(capacity),
+        }
+    }
+
+    pub fn reset_with_extent(&mut self, extent: (F, F, F, F)) {
+        self.regions.clear();
+
         let (mut min_x, mut max_x, mut min_y, mut max_y) = extent;
 
         // Squarifying bounds
@@ -116,9 +124,7 @@ impl<F: Float> BarnesHutTree<F> {
             max_x = min_x + dy;
         }
 
-        Self {
-            regions: vec![BarnesHutRegion::new_root(min_x, max_x, min_y, max_y)],
-        }
+        self.regions = vec![BarnesHutRegion::new_root(min_x, max_x, min_y, max_y)];
     }
 
     pub fn read(&mut self, nodes: &[F]) {
@@ -146,12 +152,10 @@ impl<F: Float> BarnesHutTree<F> {
                         } else {
                             Quadrant::BottomLeft
                         }
+                    } else if y < current_region.center_y {
+                        Quadrant::TopRight
                     } else {
-                        if y < current_region.center_y {
-                            Quadrant::TopRight
-                        } else {
-                            Quadrant::BottomRight
-                        }
+                        Quadrant::BottomRight
                     };
 
                     // Update mass
@@ -223,14 +227,12 @@ impl<F: Float> BarnesHutTree<F> {
                             bottom_left.node = Some(region_node);
                             Quadrant::BottomLeft
                         }
+                    } else if old_node_y < current_region.center_y {
+                        top_right.node = Some(region_node);
+                        Quadrant::TopRight
                     } else {
-                        if old_node_y < current_region.center_y {
-                            top_right.node = Some(region_node);
-                            Quadrant::TopRight
-                        } else {
-                            bottom_right.node = Some(region_node);
-                            Quadrant::BottomRight
-                        }
+                        bottom_right.node = Some(region_node);
+                        Quadrant::BottomRight
                     };
 
                     current_region.mass = old_node_mass;
@@ -246,12 +248,10 @@ impl<F: Float> BarnesHutTree<F> {
                         } else {
                             Quadrant::BottomLeft
                         }
+                    } else if y < current_region.center_y {
+                        Quadrant::TopRight
                     } else {
-                        if y < current_region.center_y {
-                            Quadrant::TopRight
-                        } else {
-                            Quadrant::BottomRight
-                        }
+                        Quadrant::BottomRight
                     };
 
                     // Pushing regions
@@ -287,17 +287,87 @@ impl<F: Float> BarnesHutTree<F> {
         }
     }
 
-    // pub fn apply_repulsion(&self, settings: &FA2Settings<F>, nodes: &[F], out: &mut [F]) {
-    //     let coefficient = settings.scaling_ratio;
+    pub fn apply_repulsion(&self, settings: &FA2Settings<F>, nodes: &[F], out: &mut [F]) {
+        let coefficient = settings.scaling_ratio;
+        let theta_squared = settings.unwrap_barnes_hut_theta().powi(2);
+        let four = F::from(4.0).unwrap();
 
-    //     for node in nodes.chunks(3) {
-    //         let region_index = 0;
+        for (n, node) in nodes.chunks(3).enumerate() {
+            let mut current_region = &self.regions[0];
 
-    //         loop {
-    //             // if let Some(first_child_index)
-    //         }
-    //     }
-    // }
+            let x = node[0];
+            let y = node[1];
+            let m = node[2];
+
+            loop {
+                // There are sub-regions
+                if let Some(first_child_index) = current_region.first_child {
+                    let distance = (x - current_region.mass_center_x).powi(2)
+                        + (y - current_region.mass_center_y).powi(2);
+
+                    let size = current_region.size;
+
+                    if (four * size * size) / distance < theta_squared {
+                        // We treat the region as a single body for repulsion
+                        // TODO: factorize with above...
+                        let x_dist = x - current_region.mass_center_x;
+                        let y_dist = y - current_region.mass_center_y;
+
+                        if distance > F::zero() {
+                            let factor = (coefficient * m * current_region.mass) / distance;
+
+                            out[n * 2] += x_dist * factor;
+                            out[n * 2 + 1] += y_dist * factor;
+                        }
+
+                        // Moving to next sibling
+                        if let Some(next_sibling_index) = current_region.next_sibling {
+                            current_region = &self.regions[next_sibling_index];
+                            continue;
+                        } else {
+                            break;
+                        }
+                    } else {
+                        // This region is too close, we delve
+                        current_region = &self.regions[first_child_index];
+                        continue;
+                    }
+                }
+                // There are no sub-regions
+                else {
+                    if let Some(region_node) = current_region.node {
+                        if region_node != n {
+                            let region_node_offset = region_node * 3;
+
+                            let region_node_x = nodes[region_node_offset];
+                            let region_node_y = nodes[region_node_offset + 1];
+                            let region_node_mass = nodes[region_node_offset + 2];
+
+                            let x_dist = x - region_node_x;
+                            let y_dist = y - region_node_y;
+
+                            let distance = x_dist.powi(2) + y_dist.powi(2);
+
+                            if distance > F::zero() {
+                                let factor = (coefficient * m * region_node_mass) / distance;
+
+                                out[n * 2] += x_dist * factor;
+                                out[n * 2 + 1] += y_dist * factor;
+                            }
+                        }
+                    }
+
+                    // Moving to next sibling
+                    if let Some(next_sibling_index) = current_region.next_sibling {
+                        current_region = &self.regions[next_sibling_index];
+                        continue;
+                    } else {
+                        break;
+                    }
+                }
+            }
+        }
+    }
 }
 
 #[cfg(test)]
@@ -323,7 +393,8 @@ mod tests {
 
         let extent = data.positions_extent().unwrap();
 
-        let mut tree = BarnesHutTree::new(extent);
+        let mut tree = BarnesHutTree::with_capacity(5);
+        tree.reset_with_extent(extent);
         tree.read(&data.nodes);
 
         assert_eq!(tree.regions.len(), 13);

@@ -3,7 +3,7 @@ use crate::layout::FA2Layout;
 use crate::traits::Float;
 
 #[derive(Debug, Clone)]
-pub enum RepulsionMode<F: Float> {
+pub(crate) enum RepulsionMode<F: Float> {
     Pairwise,
     BarnesHut { theta: F },
 }
@@ -40,6 +40,13 @@ impl<F: Float> FA2Settings<F> {
     // Ref: https://github.com/graphology/graphology/blob/249ec5e668ff5e89bf37a10330981579f8759525/src/layout-forceatlas2/index.js#L87
     pub fn from_graph_order(order: usize) -> Self {
         Self {
+            repulsion_mode: if order >= 2048 {
+                RepulsionMode::BarnesHut {
+                    theta: F::from(0.5).unwrap(),
+                }
+            } else {
+                RepulsionMode::Pairwise
+            },
             strong_gravity_mode: true,
             gravity: F::from(0.05).unwrap(),
             scaling_ratio: F::from(10.0).unwrap(),
@@ -48,16 +55,28 @@ impl<F: Float> FA2Settings<F> {
         }
     }
 
-    pub fn with_barnes_hut_with_theta(mut self, theta: F) -> Self {
+    pub fn with_pairwise_repulsion(mut self) -> Self {
+        self.repulsion_mode = RepulsionMode::Pairwise;
+        self
+    }
+
+    pub fn with_barnes_hut_theta(mut self, theta: F) -> Self {
         self.repulsion_mode = RepulsionMode::BarnesHut { theta };
         self
     }
 
     pub fn with_barnes_hut(self) -> Self {
-        self.with_barnes_hut_with_theta(F::from(0.5).unwrap())
+        self.with_barnes_hut_theta(F::from(0.5).unwrap())
     }
 
-    pub fn build<'d>(self, data: &'d mut FA2Data<F>) -> FA2Layout<'d, F> {
+    pub(crate) fn unwrap_barnes_hut_theta(&self) -> F {
+        match &self.repulsion_mode {
+            RepulsionMode::BarnesHut { theta } => *theta,
+            _ => panic!("not using barnes hut!"),
+        }
+    }
+
+    pub fn build(self, data: &mut FA2Data<F>) -> FA2Layout<'_, F> {
         FA2Layout::new(self, data)
     }
 }

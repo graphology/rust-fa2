@@ -29,6 +29,10 @@ struct Args {
     #[arg(long)]
     circular: bool,
 
+    /// Use Barnes-Hut?
+    #[arg(long)]
+    barnes_hut: bool,
+
     /// Verbose
     #[arg(short, long)]
     verbose: bool,
@@ -76,7 +80,13 @@ fn main() -> anyhow::Result<()> {
         layout_data.add_edge(i, j);
     }
 
-    let settings = FA2Settings::<f32>::from_graph_order(layout_data.order());
+    let mut settings = FA2Settings::<f32>::from_graph_order(layout_data.order());
+
+    settings = if args.barnes_hut {
+        settings.with_barnes_hut()
+    } else {
+        settings.with_pairwise_repulsion()
+    };
 
     if args.verbose {
         eprintln!("{:?}", settings);
