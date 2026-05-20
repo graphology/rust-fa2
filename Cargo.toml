@@ -13,6 +13,14 @@ repository = "https://github.com/graphology/rust-fa2"
 readme = "README.md"
 keywords = ["graph", "layout", "forceatlas"]
 license = "MIT"
+include = [
+  "./Cargo.toml",
+  "./README.md",
+  "./LICENSE.txt",
+  "examples/**/*.rs",
+  "src/**/*.rs",
+  "tests/**/*.rs"
+]
 
 [lib]
 name = "fa2"
