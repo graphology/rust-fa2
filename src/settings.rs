@@ -48,8 +48,17 @@ impl<F: Float> FA2Settings<F> {
         }
     }
 
-    pub fn build<'d>(&self, data: &'d mut FA2Data<F>) -> FA2Layout<'d, F> {
-        FA2Layout::new(self.clone(), data)
+    pub fn with_barnes_hut_with_theta(mut self, theta: F) -> Self {
+        self.repulsion_mode = RepulsionMode::BarnesHut { theta };
+        self
+    }
+
+    pub fn with_barnes_hut(self) -> Self {
+        self.with_barnes_hut_with_theta(F::from(0.5).unwrap())
+    }
+
+    pub fn build<'d>(self, data: &'d mut FA2Data<F>) -> FA2Layout<'d, F> {
+        FA2Layout::new(self, data)
     }
 }
 
