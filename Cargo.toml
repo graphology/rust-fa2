@@ -19,6 +19,9 @@ name = "fa2"
 test = true
 doctest = false
 
+[[test]]
+name = "tests"
+
 [dependencies]
 num-traits = "0.2.19"
 

@@ -1,6 +1,6 @@
 /target
 .vscode
-*.json
-*.csv
+/*.json
+/*.csv
 iterate.js
 log.txt

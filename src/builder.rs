@@ -114,6 +114,22 @@ impl<F: Float> FA2Data<F> {
             *x = F::zero();
         }
     }
+
+    pub fn apply_circular_layout(&mut self) {
+        let tau = F::TAU();
+        let order = F::from(self.order()).unwrap();
+
+        let mut i = F::zero();
+
+        for node in self.nodes.chunks_mut(3) {
+            let p = (i * tau) / order;
+
+            node[0] = p.cos();
+            node[1] = p.sin();
+
+            i += F::one();
+        }
+    }
 }
 
 #[cfg(test)]
