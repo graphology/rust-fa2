@@ -372,7 +372,7 @@ impl<F: Float> BarnesHutTree<F> {
 
 #[cfg(test)]
 mod tests {
-    use crate::builder::FA2Data;
+    use crate::data::FA2Data;
 
     use super::*;
 

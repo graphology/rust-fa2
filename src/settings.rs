@@ -1,4 +1,4 @@
-use crate::builder::FA2Data;
+use crate::data::FA2Data;
 use crate::layout::FA2Layout;
 use crate::traits::Float;
 
@@ -18,6 +18,7 @@ pub struct FA2Settings<F: Float> {
     // pub(crate) outbound_attraction_distribution: bool,
     pub(crate) scaling_ratio: F,
     pub(crate) slow_down: F,
+    pub(crate) parallel: bool,
 }
 
 impl<F: Float> Default for FA2Settings<F> {
@@ -32,6 +33,7 @@ impl<F: Float> Default for FA2Settings<F> {
             // outbound_attraction_distribution: false,
             scaling_ratio: F::one(),
             slow_down: F::one(),
+            parallel: false,
         }
     }
 }
@@ -53,6 +55,11 @@ impl<F: Float> FA2Settings<F> {
             slow_down: F::one() + F::from(order).unwrap().ln(),
             ..Default::default()
         }
+    }
+
+    pub fn parallel(mut self, yes: bool) -> Self {
+        self.parallel = yes;
+        self
     }
 
     pub fn with_pairwise_repulsion(mut self) -> Self {

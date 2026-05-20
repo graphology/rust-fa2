@@ -1,6 +1,8 @@
+// use rayon::prelude::*;
+
 use crate::attraction::apply_attraction;
 use crate::barnes_hut::BarnesHutTree;
-use crate::builder::FA2Data;
+use crate::data::FA2Data;
 use crate::forces::apply_forces;
 use crate::gravity::apply_gravity;
 use crate::repulsion::apply_pairwise_repulsion;
@@ -54,12 +56,20 @@ impl<'d, F: Float> FA2Layout<'d, F> {
         };
 
         apply_gravity(&self.settings, &self.data.nodes, &mut self.data.deltas);
-        apply_attraction(
-            &self.settings,
-            &self.data.nodes,
-            &self.data.edges,
-            &mut self.data.deltas,
-        );
+
+        if self.settings.parallel {
+            let _chunk_size =
+                (self.data.size() / rayon::current_num_threads()).min(self.data.size());
+
+            todo!()
+        } else {
+            apply_attraction(
+                &self.settings,
+                &self.data.nodes,
+                &self.data.edges,
+                &mut self.data.deltas,
+            );
+        }
 
         apply_forces(
             &self.settings,

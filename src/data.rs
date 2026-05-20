@@ -41,6 +41,10 @@ impl<F: Float> FA2Data<F> {
         self.nodes.len() / 3
     }
 
+    pub fn size(&self) -> usize {
+        self.edges.len()
+    }
+
     pub fn add_node(&mut self, x: F, y: F) -> usize {
         let index = self.nodes.len() / 3;
 
