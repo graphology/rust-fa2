@@ -6,13 +6,13 @@ use crate::repulsion::apply_pairwise_repulsion;
 use crate::settings::FA2Settings;
 use crate::traits::Float;
 
-pub struct FA2Layout<F: Float> {
+pub struct FA2Layout<'d, F: Float> {
     settings: FA2Settings<F>,
-    data: FA2Data<F>,
+    data: &'d mut FA2Data<F>,
 }
 
-impl<F: Float> FA2Layout<F> {
-    pub fn with_settings(settings: FA2Settings<F>, data: FA2Data<F>) -> Self {
+impl<'d, F: Float> FA2Layout<'d, F> {
+    pub(crate) fn new(settings: FA2Settings<F>, data: &'d mut FA2Data<F>) -> Self {
         Self { settings, data }
     }
 

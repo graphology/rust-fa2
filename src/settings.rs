@@ -1,3 +1,5 @@
+use crate::builder::FA2Data;
+use crate::layout::FA2Layout;
 use crate::traits::Float;
 
 #[derive(Debug, Clone)]
@@ -44,6 +46,10 @@ impl<F: Float> FA2Settings<F> {
             slow_down: F::one() + F::from(order).unwrap().ln(),
             ..Default::default()
         }
+    }
+
+    pub fn build<'d>(&self, data: &'d mut FA2Data<F>) -> FA2Layout<'d, F> {
+        FA2Layout::new(self.clone(), data)
     }
 }
 

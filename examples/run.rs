@@ -74,7 +74,7 @@ fn main() -> anyhow::Result<()> {
         eprintln!("{:?}", settings);
     }
 
-    let mut layout = FA2Layout::with_settings(settings, layout_data);
+    let mut layout = settings.build(&mut layout_data);
 
     for i in 0..args.iterations {
         let movement = layout.epoch();
