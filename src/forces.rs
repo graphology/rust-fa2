@@ -53,3 +53,30 @@ pub fn apply_forces<F: Float>(
 
     total_movement
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_apply_forces() {
+        let settings = FA2Settings::<f32>::default();
+
+        let mut nodes = [1.0, 3.0, 1.0, 2.0, -5.0, 1.5];
+        let deltas = [1.0, 2.0, -4.0, -5.0];
+        let last_deltas = [0.0, 0.0, 0.0, 0.0];
+        let mut convergences = [1.0, 1.0];
+
+        let total_movement = apply_forces(
+            &settings,
+            &mut nodes,
+            &deltas,
+            &last_deltas,
+            &mut convergences,
+        );
+
+        assert_eq!(total_movement, 4.0539246);
+        assert_eq!(nodes, [1.3007548, 3.6015096, 1.0, 0.599262, -6.750922, 1.5]);
+        assert_eq!(convergences, [0.776293, 1.0]);
+    }
+}

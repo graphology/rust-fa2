@@ -35,3 +35,20 @@ pub fn apply_pairwise_repulsion<F: Float>(settings: &FA2Settings<F>, nodes: &[F]
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_apply_pairwise_repulsion() {
+        let settings = FA2Settings::<f32>::default();
+
+        let nodes = [1.0, 3.0, 1.0, 2.0, -5.0, 1.5];
+        let mut out = [1.0, 3.0, 2.0, -5.0];
+
+        apply_pairwise_repulsion(&settings, &nodes, &mut out);
+
+        assert_eq!(out, [0.97692305, 3.1846154, 2.023077, -5.1846156]);
+    }
+}

@@ -41,6 +41,6 @@ mod tests {
 
         apply_gravity(&settings, &nodes, &mut out);
 
-        assert_eq!(out, [0.6837722, 2.0513167, 1.442914, -3.607285])
+        assert_eq!(out, [0.6837722, 2.0513167, 1.442914, -3.607285]);
     }
 }

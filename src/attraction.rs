@@ -24,3 +24,21 @@ pub fn apply_attraction<F: Float>(
         out[target * 2 + 1] -= y_dist * factor;
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_apply_attraction() {
+        let settings = FA2Settings::<f32>::default();
+
+        let nodes = [1.0, 3.0, 1.0, 2.0, -5.0, 1.5];
+        let edges = [(0, 1, 1.0)];
+        let mut out = [1.0, 3.0, 2.0, -5.0];
+
+        apply_attraction(&settings, &nodes, &edges, &mut out);
+
+        assert_eq!(out, [2.0, -5.0, 1.0, 3.0]);
+    }
+}
