@@ -1,5 +1,7 @@
 #!/usr/bin/bash
-xan network edgelist 0 1 --nodes "$1" "$2" | \
-net-to-img -f json -o graph.png --no-colorize --no-map-sizes --no-layout
+xan network edgelist 0 1 "$2" -f nodes -D | \
+xan join node - "$1" | \
+xan network edgelist 0 1 --nodes - "$2" | \
+net-to-img -f json -o graph.png --no-colorize --map-sizes degree --no-layout
 
 xdg-open graph.png
