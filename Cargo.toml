@@ -20,7 +20,7 @@ test = true
 doctest = false
 
 [dependencies]
-num = "0.4.3"
+num-traits = "0.2.19"
 
 [dev-dependencies]
 anyhow = "1.0.100"
