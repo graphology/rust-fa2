@@ -2,5 +2,6 @@
 .vscode
 /*.json
 /*.csv
+/*.png
 iterate.js
 log.txt

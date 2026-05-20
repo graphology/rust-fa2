@@ -4,7 +4,7 @@ use std::fs::File;
 
 use clap::Parser;
 
-use fa2::{FA2Data, FA2Layout, FA2Settings};
+use fa2::{FA2Data, FA2Settings};
 
 #[derive(Parser, Debug)]
 struct Args {
@@ -20,6 +20,10 @@ struct Args {
     /// Number of iterations to run
     #[arg(long, default_value = "10")]
     iterations: usize,
+
+    /// Just apply a circular layout and exit
+    #[arg(long)]
+    circular: bool,
 
     /// Verbose
     #[arg(short, long)]
@@ -74,12 +78,16 @@ fn main() -> anyhow::Result<()> {
         eprintln!("{:?}", settings);
     }
 
-    let mut layout = settings.build(&mut layout_data);
+    if args.circular {
+        layout_data.apply_circular_layout();
+    } else {
+        let mut layout = settings.build(&mut layout_data);
 
-    for i in 0..args.iterations {
-        let movement = layout.epoch();
+        for i in 0..args.iterations {
+            let movement = layout.epoch();
 
-        eprintln!("Epoch n°{}, movement={}", i + 1, movement);
+            eprintln!("Epoch n°{}, movement={}", i + 1, movement);
+        }
     }
 
     let mut writer = simd_csv::Writer::from_writer(std::io::stdout());
@@ -90,7 +98,7 @@ fn main() -> anyhow::Result<()> {
         .map(|(k, v)| (v, k))
         .collect::<HashMap<_, _>>();
 
-    for (i, (x, y)) in layout.positions().enumerate() {
+    for (i, (x, y)) in layout_data.positions().enumerate() {
         writer.write_record_no_quoting([
             reverse_node_index.get(&i).unwrap(),
             x.to_string().as_bytes(),

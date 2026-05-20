@@ -42,8 +42,4 @@ impl<'d, F: Float> FA2Layout<'d, F> {
             self.epoch();
         }
     }
-
-    pub fn positions(&self) -> impl Iterator<Item = (F, F)> + '_ {
-        self.data.nodes.chunks(3).map(|w| (w[0], w[1]))
-    }
 }

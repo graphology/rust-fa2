@@ -72,6 +72,10 @@ impl<F: Float> FA2Data<F> {
         self.add_edge_with_weight(i, j, F::one());
     }
 
+    pub fn positions(&self) -> impl Iterator<Item = (F, F)> + '_ {
+        self.nodes.chunks(3).map(|w| (w[0], w[1]))
+    }
+
     pub(crate) fn positions_extent(&self) -> Option<(F, F, F, F)> {
         let mut extent = None;
 
