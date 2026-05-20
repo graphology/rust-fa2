@@ -1,10 +1,10 @@
-use rand::prelude::*;
 use std::collections::HashMap;
 use std::fs::File;
+use std::io::Write;
 
 use clap::Parser;
-
 use fa2::{FA2Data, FA2Settings};
+use rand::prelude::*;
 
 #[derive(Parser, Debug)]
 struct Args {
@@ -90,23 +90,31 @@ fn main() -> anyhow::Result<()> {
         }
     }
 
-    let mut writer = simd_csv::Writer::from_writer(std::io::stdout());
-    writer.write_record_no_quoting(["node", "x", "y"])?;
+    fn dump<W: Write>(
+        w: W,
+        node_index: &HashMap<Vec<u8>, usize>,
+        layout_data: &FA2Data<f32>,
+    ) -> anyhow::Result<()> {
+        let mut writer = simd_csv::Writer::from_writer(w);
+        writer.write_record_no_quoting(["node", "x", "y"])?;
 
-    let reverse_node_index = node_index
-        .into_iter()
-        .map(|(k, v)| (v, k))
-        .collect::<HashMap<_, _>>();
+        let reverse_node_index = node_index
+            .into_iter()
+            .map(|(k, v)| (v, k))
+            .collect::<HashMap<_, _>>();
 
-    for (i, (x, y)) in layout_data.positions().enumerate() {
-        writer.write_record([
-            reverse_node_index.get(&i).unwrap(),
-            x.to_string().as_bytes(),
-            y.to_string().as_bytes(),
-        ])?;
+        for (i, (x, y)) in layout_data.positions().enumerate() {
+            writer.write_record([
+                reverse_node_index.get(&i).unwrap(),
+                x.to_string().as_bytes(),
+                y.to_string().as_bytes(),
+            ])?;
+        }
+
+        Ok(writer.flush()?)
     }
 
-    writer.flush()?;
+    dump(std::io::stdout(), &node_index, &layout_data)?;
 
     Ok(())
 }
