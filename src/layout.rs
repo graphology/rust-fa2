@@ -1,5 +1,3 @@
-// use rayon::prelude::*;
-
 use crate::attraction::apply_attraction;
 use crate::barnes_hut::BarnesHutTree;
 use crate::data::FA2Data;
@@ -58,14 +56,26 @@ impl<F: Float> FA2Layout<F> {
                 let extent = self.data.positions_extent().unwrap();
                 tree.reset_with_extent(extent);
                 tree.read(&self.data.xs, &self.data.ys, &self.data.ms);
-                tree.apply_repulsion(
-                    &self.settings,
-                    &self.data.xs,
-                    &self.data.ys,
-                    &self.data.ms,
-                    &mut self.data.delta_xs,
-                    &mut self.data.delta_ys,
-                );
+
+                if self.settings.parallel {
+                    tree.par_apply_repulsion(
+                        &self.settings,
+                        &self.data.xs,
+                        &self.data.ys,
+                        &self.data.ms,
+                        &mut self.data.delta_xs,
+                        &mut self.data.delta_ys,
+                    );
+                } else {
+                    tree.apply_repulsion(
+                        &self.settings,
+                        &self.data.xs,
+                        &self.data.ys,
+                        &self.data.ms,
+                        &mut self.data.delta_xs,
+                        &mut self.data.delta_ys,
+                    );
+                }
             }
         };
 
@@ -78,21 +88,14 @@ impl<F: Float> FA2Layout<F> {
             &mut self.data.delta_ys,
         );
 
-        if self.settings.parallel {
-            let _chunk_size =
-                (self.data.size() / rayon::current_num_threads()).min(self.data.size());
-
-            todo!()
-        } else {
-            apply_attraction(
-                &self.settings,
-                &self.data.xs,
-                &self.data.ys,
-                &self.data.edges,
-                &mut self.data.delta_xs,
-                &mut self.data.delta_ys,
-            );
-        }
+        apply_attraction(
+            &self.settings,
+            &self.data.xs,
+            &self.data.ys,
+            &self.data.edges,
+            &mut self.data.delta_xs,
+            &mut self.data.delta_ys,
+        );
 
         apply_forces(
             &self.settings,

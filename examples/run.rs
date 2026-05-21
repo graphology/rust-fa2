@@ -37,6 +37,10 @@ struct Args {
     /// Verbose
     #[arg(short, long)]
     verbose: bool,
+
+    /// Parallel
+    #[arg(short, long)]
+    parallel: bool,
 }
 
 impl Args {
@@ -89,7 +93,8 @@ fn main() -> anyhow::Result<()> {
         );
     }
 
-    let mut settings = FA2Settings::<f32>::from_graph_order(layout_data.order());
+    let mut settings =
+        FA2Settings::<f32>::from_graph_order(layout_data.order()).parallel(args.parallel);
 
     settings = if args.barnes_hut {
         settings.with_barnes_hut()

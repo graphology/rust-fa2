@@ -1,3 +1,5 @@
+use rayon::prelude::*;
+
 use crate::settings::FA2Settings;
 use crate::traits::Float;
 
@@ -371,6 +373,96 @@ impl<F: Float> BarnesHutTree<F> {
                 }
             }
         }
+    }
+
+    pub fn par_apply_repulsion(
+        &self,
+        settings: &FA2Settings<F>,
+        xs: &[F],
+        ys: &[F],
+        ms: &[F],
+        out_xs: &mut [F],
+        out_ys: &mut [F],
+    ) {
+        let coefficient = settings.scaling_ratio;
+        let theta_squared = settings.unwrap_barnes_hut_theta().powi(2);
+        let four = F::from(4.0).unwrap();
+
+        out_xs
+            .par_iter_mut()
+            .zip(out_ys.par_iter_mut())
+            .enumerate()
+            .for_each(|(n, (out_x, out_y))| {
+                let mut current_region = &self.regions[0];
+
+                let x = xs[n];
+                let y = ys[n];
+                let m = ms[n];
+
+                loop {
+                    // There are sub-regions
+                    if let Some(first_child_index) = current_region.first_child {
+                        let x_dist = x - current_region.mass_center_x;
+                        let y_dist = y - current_region.mass_center_y;
+
+                        let distance = x_dist * x_dist + y_dist * y_dist;
+
+                        let size = current_region.size;
+
+                        if (four * size * size) / distance < theta_squared {
+                            // We treat the region as a single body for repulsion
+                            if distance > F::zero() {
+                                let factor = (coefficient * m * current_region.mass) / distance;
+
+                                *out_x += x_dist * factor;
+                                *out_y += y_dist * factor;
+                            }
+
+                            // Moving to next sibling
+                            if let Some(next_sibling_index) = current_region.next_sibling {
+                                current_region = &self.regions[next_sibling_index];
+                                continue;
+                            } else {
+                                break;
+                            }
+                        } else {
+                            // This region is too close, we delve
+                            current_region = &self.regions[first_child_index];
+                            continue;
+                        }
+                    }
+                    // There are no sub-regions
+                    else {
+                        if let Some(region_node) = current_region.node {
+                            if region_node != n {
+                                let region_node_x = xs[region_node];
+                                let region_node_y = ys[region_node];
+                                let region_node_mass = ms[region_node];
+
+                                let x_dist = x - region_node_x;
+                                let y_dist = y - region_node_y;
+
+                                let distance = x_dist * x_dist + y_dist * y_dist;
+
+                                if distance > F::zero() {
+                                    let factor = (coefficient * m * region_node_mass) / distance;
+
+                                    *out_x += x_dist * factor;
+                                    *out_y += y_dist * factor;
+                                }
+                            }
+                        }
+
+                        // Moving to next sibling
+                        if let Some(next_sibling_index) = current_region.next_sibling {
+                            current_region = &self.regions[next_sibling_index];
+                            continue;
+                        } else {
+                            break;
+                        }
+                    }
+                }
+            });
     }
 }
 
