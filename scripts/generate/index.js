@@ -1,7 +1,7 @@
 const Graph = require('graphology');
 const clusters = require('graphology-generators/random/clusters');
 
-const graph = clusters(Graph, {order: 10_000, size: 50_000, clusters: 5, clusterDensity: 0.7});
+const graph = clusters(Graph, {order: 10_000 * 5, size: 50_000 * 5, clusters: 5, clusterDensity: 0.7});
 
 console.log("source,target");
 
