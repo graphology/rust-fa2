@@ -81,6 +81,14 @@ fn main() -> anyhow::Result<()> {
         layout_data.add_edge(i, j);
     }
 
+    if args.verbose {
+        eprintln!(
+            "data loaded: {} nodes, {} edges!",
+            layout_data.order(),
+            layout_data.size()
+        );
+    }
+
     let mut settings = FA2Settings::<f32>::from_graph_order(layout_data.order());
 
     settings = if args.barnes_hut {
