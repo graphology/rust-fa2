@@ -310,17 +310,15 @@ impl<F: Float> BarnesHutTree<F> {
             loop {
                 // There are sub-regions
                 if let Some(first_child_index) = current_region.first_child {
-                    let distance = (x - current_region.mass_center_x).powi(2)
-                        + (y - current_region.mass_center_y).powi(2);
+                    let x_dist = x - current_region.mass_center_x;
+                    let y_dist = y - current_region.mass_center_y;
+
+                    let distance = x_dist * x_dist + y_dist * y_dist;
 
                     let size = current_region.size;
 
                     if (four * size * size) / distance < theta_squared {
                         // We treat the region as a single body for repulsion
-                        // TODO: factorize with above...
-                        let x_dist = x - current_region.mass_center_x;
-                        let y_dist = y - current_region.mass_center_y;
-
                         if distance > F::zero() {
                             let factor = (coefficient * m * current_region.mass) / distance;
 
@@ -352,7 +350,7 @@ impl<F: Float> BarnesHutTree<F> {
                             let x_dist = x - region_node_x;
                             let y_dist = y - region_node_y;
 
-                            let distance = x_dist.powi(2) + y_dist.powi(2);
+                            let distance = x_dist * x_dist + y_dist * y_dist;
 
                             if distance > F::zero() {
                                 let factor = (coefficient * m * region_node_mass) / distance;
