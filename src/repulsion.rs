@@ -1,21 +1,25 @@
 use crate::settings::FA2Settings;
 use crate::traits::Float;
 
-pub fn apply_pairwise_repulsion<F: Float>(settings: &FA2Settings<F>, nodes: &[F], out: &mut [F]) {
-    let order = nodes.len() / 3;
+pub fn apply_pairwise_repulsion<F: Float>(
+    settings: &FA2Settings<F>,
+    xs: &[F],
+    ys: &[F],
+    ms: &[F],
+    out_xs: &mut [F],
+    out_ys: &mut [F],
+) {
+    let order = xs.len();
 
     for n1 in 0..order {
-        let o1 = n1 * 3;
-
-        let x1 = nodes[o1];
-        let y1 = nodes[o1 + 1];
-        let m1 = nodes[o1 + 2];
+        let x1 = xs[n1];
+        let y1 = ys[n1];
+        let m1 = ms[n1];
 
         for n2 in (n1 + 1)..order {
-            let o2 = n2 * 3;
-            let x2 = nodes[o2];
-            let y2 = nodes[o2 + 1];
-            let m2 = nodes[o2 + 2];
+            let x2 = xs[n2];
+            let y2 = ys[n2];
+            let m2 = ms[n2];
 
             let x_dist = x1 - x2;
             let y_dist = y1 - y2;
@@ -26,11 +30,11 @@ pub fn apply_pairwise_repulsion<F: Float>(settings: &FA2Settings<F>, nodes: &[F]
             if distance > F::zero() {
                 let factor = (settings.scaling_ratio * m1 * m2) / distance / distance;
 
-                out[n1 * 2] += x_dist * factor;
-                out[n1 * 2 + 1] += y_dist * factor;
+                out_xs[n1] += x_dist * factor;
+                out_ys[n1] += y_dist * factor;
 
-                out[n2 * 2] -= x_dist * factor;
-                out[n2 * 2 + 1] -= y_dist * factor;
+                out_xs[n2] -= x_dist * factor;
+                out_ys[n2] -= y_dist * factor;
             }
         }
     }
@@ -44,11 +48,15 @@ mod tests {
     fn test_apply_pairwise_repulsion() {
         let settings = FA2Settings::<f32>::default();
 
-        let nodes = [1.0, 3.0, 1.0, 2.0, -5.0, 1.5];
-        let mut out = [1.0, 3.0, 2.0, -5.0];
+        let xs = [1.0, 2.0];
+        let ys = [3.0, -5.0];
+        let ms = [1.0, 1.5];
+        let mut out_xs = [1.0, 2.0];
+        let mut out_ys = [3.0, -5.0];
 
-        apply_pairwise_repulsion(&settings, &nodes, &mut out);
+        apply_pairwise_repulsion(&settings, &xs, &ys, &ms, &mut out_xs, &mut out_ys);
 
-        assert_eq!(out, [0.97692305, 3.1846154, 2.023077, -5.1846156]);
+        assert_eq!(out_xs, [0.97692305, 2.023077]);
+        assert_eq!(out_ys, [3.1846154, -5.1846156]);
     }
 }

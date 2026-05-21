@@ -45,17 +45,38 @@ impl<F: Float> FA2Layout<F> {
 
         match &mut self.repulsion_index {
             RepulsionIndex::None => {
-                apply_pairwise_repulsion(&self.settings, &self.data.nodes, &mut self.data.deltas);
+                apply_pairwise_repulsion(
+                    &self.settings,
+                    &self.data.xs,
+                    &self.data.ys,
+                    &self.data.ms,
+                    &mut self.data.delta_xs,
+                    &mut self.data.delta_ys,
+                );
             }
             RepulsionIndex::BarnesHut(tree) => {
                 let extent = self.data.positions_extent().unwrap();
                 tree.reset_with_extent(extent);
-                tree.read(&self.data.nodes);
-                tree.apply_repulsion(&self.settings, &self.data.nodes, &mut self.data.deltas);
+                tree.read(&self.data.xs, &self.data.ys, &self.data.ms);
+                tree.apply_repulsion(
+                    &self.settings,
+                    &self.data.xs,
+                    &self.data.ys,
+                    &self.data.ms,
+                    &mut self.data.delta_xs,
+                    &mut self.data.delta_ys,
+                );
             }
         };
 
-        apply_gravity(&self.settings, &self.data.nodes, &mut self.data.deltas);
+        apply_gravity(
+            &self.settings,
+            &self.data.xs,
+            &self.data.ys,
+            &self.data.ms,
+            &mut self.data.delta_xs,
+            &mut self.data.delta_ys,
+        );
 
         if self.settings.parallel {
             let _chunk_size =
@@ -65,17 +86,23 @@ impl<F: Float> FA2Layout<F> {
         } else {
             apply_attraction(
                 &self.settings,
-                &self.data.nodes,
+                &self.data.xs,
+                &self.data.ys,
                 &self.data.edges,
-                &mut self.data.deltas,
+                &mut self.data.delta_xs,
+                &mut self.data.delta_ys,
             );
         }
 
         apply_forces(
             &self.settings,
-            &mut self.data.nodes,
-            &self.data.deltas,
-            &self.data.last_deltas,
+            &mut self.data.xs,
+            &mut self.data.ys,
+            &self.data.ms,
+            &self.data.delta_xs,
+            &self.data.delta_ys,
+            &self.data.old_delta_xs,
+            &self.data.old_delta_ys,
             &mut self.data.convergences,
         )
     }

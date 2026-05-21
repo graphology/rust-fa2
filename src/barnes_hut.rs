@@ -127,18 +127,18 @@ impl<F: Float> BarnesHutTree<F> {
         self.regions = vec![BarnesHutRegion::new_root(min_x, max_x, min_y, max_y)];
     }
 
-    pub fn read(&mut self, nodes: &[F]) {
+    pub fn read(&mut self, xs: &[F], ys: &[F], ms: &[F]) {
         let two = F::from(2.0).unwrap();
 
         let mut l: usize = 1;
 
-        for (n, node) in nodes.chunks(3).enumerate() {
+        for n in 0..xs.len() {
             let mut region_index: usize = 0;
             let mut subdivision_attempts = SUBDIVISION_ATTEMPTS;
 
-            let x = node[0];
-            let y = node[1];
-            let m = node[2];
+            let x = xs[n];
+            let y = ys[n];
+            let m = ms[n];
 
             loop {
                 if let Some(first_child_index) = self.regions[region_index].first_child {
@@ -215,9 +215,9 @@ impl<F: Float> BarnesHutTree<F> {
                     // different sub-regions
 
                     // Finding old node's quadrant
-                    let old_node_x = nodes[region_node * 3];
-                    let old_node_y = nodes[region_node * 3 + 1];
-                    let old_node_mass = nodes[region_node * 3 + 2];
+                    let old_node_x = xs[region_node];
+                    let old_node_y = ys[region_node];
+                    let old_node_mass = ms[region_node];
 
                     let old_node_quadrant = if old_node_x < current_region.center_x {
                         if old_node_y < current_region.center_y {
@@ -287,17 +287,25 @@ impl<F: Float> BarnesHutTree<F> {
         }
     }
 
-    pub fn apply_repulsion(&self, settings: &FA2Settings<F>, nodes: &[F], out: &mut [F]) {
+    pub fn apply_repulsion(
+        &self,
+        settings: &FA2Settings<F>,
+        xs: &[F],
+        ys: &[F],
+        ms: &[F],
+        out_xs: &mut [F],
+        out_ys: &mut [F],
+    ) {
         let coefficient = settings.scaling_ratio;
         let theta_squared = settings.unwrap_barnes_hut_theta().powi(2);
         let four = F::from(4.0).unwrap();
 
-        for (n, node) in nodes.chunks(3).enumerate() {
+        for n in 0..xs.len() {
             let mut current_region = &self.regions[0];
 
-            let x = node[0];
-            let y = node[1];
-            let m = node[2];
+            let x = xs[n];
+            let y = ys[n];
+            let m = ms[n];
 
             loop {
                 // There are sub-regions
@@ -316,8 +324,8 @@ impl<F: Float> BarnesHutTree<F> {
                         if distance > F::zero() {
                             let factor = (coefficient * m * current_region.mass) / distance;
 
-                            out[n * 2] += x_dist * factor;
-                            out[n * 2 + 1] += y_dist * factor;
+                            out_xs[n] += x_dist * factor;
+                            out_ys[n] += y_dist * factor;
                         }
 
                         // Moving to next sibling
@@ -337,11 +345,9 @@ impl<F: Float> BarnesHutTree<F> {
                 else {
                     if let Some(region_node) = current_region.node {
                         if region_node != n {
-                            let region_node_offset = region_node * 3;
-
-                            let region_node_x = nodes[region_node_offset];
-                            let region_node_y = nodes[region_node_offset + 1];
-                            let region_node_mass = nodes[region_node_offset + 2];
+                            let region_node_x = xs[region_node];
+                            let region_node_y = ys[region_node];
+                            let region_node_mass = ms[region_node];
 
                             let x_dist = x - region_node_x;
                             let y_dist = y - region_node_y;
@@ -351,8 +357,8 @@ impl<F: Float> BarnesHutTree<F> {
                             if distance > F::zero() {
                                 let factor = (coefficient * m * region_node_mass) / distance;
 
-                                out[n * 2] += x_dist * factor;
-                                out[n * 2 + 1] += y_dist * factor;
+                                out_xs[n] += x_dist * factor;
+                                out_ys[n] += y_dist * factor;
                             }
                         }
                     }
@@ -395,7 +401,7 @@ mod tests {
 
         let mut tree = BarnesHutTree::with_capacity(5);
         tree.reset_with_extent(extent);
-        tree.read(&data.nodes);
+        tree.read(&data.xs, &data.ys, &data.ms);
 
         assert_eq!(tree.regions.len(), 13);
         assert_eq!(tree.nodes().collect::<Vec<_>>(), [4, 2, 3, 0]);
