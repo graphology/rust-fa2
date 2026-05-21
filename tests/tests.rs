@@ -43,15 +43,15 @@ fn les_miserables(weighted: bool) -> FA2Data<f32> {
 
 #[test]
 fn test_basic() {
-    let mut data = les_miserables(false);
+    let data = les_miserables(false);
 
     let settings = FA2Settings::from_graph_order(data.order());
-    let mut layout = settings.build(&mut data);
+    let mut layout = settings.build(data);
 
     layout.run(10);
 
     assert_eq!(
-        data.positions().collect::<Vec<_>>(),
+        layout.data().positions().collect::<Vec<_>>(),
         [
             (136.68904, 23.265457),
             (138.03792, 41.912155),
@@ -136,15 +136,15 @@ fn test_basic() {
 
 #[test]
 fn test_weighted() {
-    let mut data = les_miserables(true);
+    let data = les_miserables(true);
 
     let settings = FA2Settings::from_graph_order(data.order());
-    let mut layout = settings.build(&mut data);
+    let mut layout = settings.build(data);
 
     layout.run(10);
 
     assert_eq!(
-        data.positions().collect::<Vec<_>>(),
+        layout.data().positions().collect::<Vec<_>>(),
         [
             (249.06027, 3.078642),
             (227.15924, 56.824203),
@@ -229,15 +229,15 @@ fn test_weighted() {
 
 #[test]
 fn test_barnes_hut() {
-    let mut data = les_miserables(true);
+    let data = les_miserables(true);
 
     let settings = FA2Settings::from_graph_order(data.order()).with_barnes_hut();
-    let mut layout = settings.build(&mut data);
+    let mut layout = settings.build(data);
 
     layout.run(10);
 
     assert_eq!(
-        data.positions().collect::<Vec<_>>(),
+        layout.data().positions().collect::<Vec<_>>(),
         [
             (192.00958, 14.105058),
             (202.75063, 17.192753),

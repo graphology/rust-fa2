@@ -100,7 +100,7 @@ fn main() -> anyhow::Result<()> {
     if args.circular {
         layout_data.apply_circular_layout();
     } else {
-        let mut layout = settings.build(&mut layout_data);
+        let mut layout = settings.build(layout_data);
 
         for i in 0..args.iterations {
             let movement = layout.epoch();
@@ -119,6 +119,8 @@ fn main() -> anyhow::Result<()> {
                 }
             }
         }
+
+        layout_data = layout.into_data();
     }
 
     fn dump<W: Write>(

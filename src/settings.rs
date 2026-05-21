@@ -83,7 +83,7 @@ impl<F: Float> FA2Settings<F> {
         }
     }
 
-    pub fn build(self, data: &mut FA2Data<F>) -> FA2Layout<'_, F> {
+    pub fn build(self, data: FA2Data<F>) -> FA2Layout<F> {
         FA2Layout::new(self, data)
     }
 }

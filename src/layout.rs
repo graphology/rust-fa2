@@ -23,14 +23,14 @@ impl<F: Float> RepulsionIndex<F> {
     }
 }
 
-pub struct FA2Layout<'d, F: Float> {
+pub struct FA2Layout<F: Float> {
     settings: FA2Settings<F>,
-    data: &'d mut FA2Data<F>,
+    data: FA2Data<F>,
     repulsion_index: RepulsionIndex<F>,
 }
 
-impl<'d, F: Float> FA2Layout<'d, F> {
-    pub(crate) fn new(settings: FA2Settings<F>, data: &'d mut FA2Data<F>) -> Self {
+impl<F: Float> FA2Layout<F> {
+    pub(crate) fn new(settings: FA2Settings<F>, data: FA2Data<F>) -> Self {
         let repulsion_index = RepulsionIndex::new(&settings.repulsion_mode, data.order());
 
         Self {
@@ -81,6 +81,10 @@ impl<'d, F: Float> FA2Layout<'d, F> {
     }
 
     pub fn data(&self) -> &FA2Data<F> {
+        &self.data
+    }
+
+    pub fn into_data(self) -> FA2Data<F> {
         self.data
     }
 
