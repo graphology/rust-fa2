@@ -3,6 +3,7 @@ use std::fs::{self, File};
 use std::io::Write;
 use std::time::SystemTime;
 
+use btoi::btoi;
 use clap::Parser;
 use fa2::{FA2Data, FA2Settings};
 use rand::prelude::*;
@@ -41,6 +42,9 @@ struct Args {
     /// Parallel
     #[arg(short, long)]
     parallel: bool,
+
+    #[arg(long)]
+    range: Option<usize>,
 }
 
 impl Args {
@@ -70,17 +74,28 @@ fn main() -> anyhow::Result<()> {
 
     let mut layout_data = FA2Data::<f32>::new();
 
+    if let Some(n) = args.range {
+        for _ in 0..n + 1 {
+            layout_data.add_node(rng.random(), rng.random());
+        }
+    }
+
     while reader.read_byte_record(&mut record)? {
         let source = &record[args.source];
         let target = &record[args.target];
 
-        let i = *node_index
-            .entry(source.to_vec())
-            .or_insert_with(|| layout_data.add_node(rng.random(), rng.random()));
-
-        let j = *node_index
-            .entry(target.to_vec())
-            .or_insert_with(|| layout_data.add_node(rng.random(), rng.random()));
+        let (i, j) = if args.range.is_some() {
+            (btoi(source)?, btoi(target)?)
+        } else {
+            (
+                *node_index
+                    .entry(source.to_vec())
+                    .or_insert_with(|| layout_data.add_node(rng.random(), rng.random())),
+                *node_index
+                    .entry(target.to_vec())
+                    .or_insert_with(|| layout_data.add_node(rng.random(), rng.random())),
+            )
+        };
 
         layout_data.add_edge(i, j);
     }
@@ -138,6 +153,7 @@ fn main() -> anyhow::Result<()> {
                 if i % every == 0 {
                     dump(
                         File::create(&format!("dump/{:>05}.csv", i))?,
+                        args.range.is_some(),
                         &node_index,
                         layout.data(),
                     )?;
@@ -150,11 +166,17 @@ fn main() -> anyhow::Result<()> {
 
     fn dump<W: Write>(
         w: W,
+        nameless: bool,
         node_index: &HashMap<Vec<u8>, usize>,
         layout_data: &FA2Data<f32>,
     ) -> anyhow::Result<()> {
         let mut writer = simd_csv::Writer::from_writer(w);
-        writer.write_record_no_quoting(["node", "x", "y"])?;
+
+        if nameless {
+            writer.write_record_no_quoting(["x", "y"])?;
+        } else {
+            writer.write_record_no_quoting(["node", "x", "y"])?;
+        }
 
         let reverse_node_index = node_index
             .into_iter()
@@ -162,17 +184,26 @@ fn main() -> anyhow::Result<()> {
             .collect::<HashMap<_, _>>();
 
         for (i, (x, y)) in layout_data.positions().enumerate() {
-            writer.write_record([
-                reverse_node_index.get(&i).unwrap(),
-                x.to_string().as_bytes(),
-                y.to_string().as_bytes(),
-            ])?;
+            if nameless {
+                writer.write_record([x.to_string().as_bytes(), y.to_string().as_bytes()])?;
+            } else {
+                writer.write_record([
+                    reverse_node_index.get(&i).unwrap(),
+                    x.to_string().as_bytes(),
+                    y.to_string().as_bytes(),
+                ])?;
+            }
         }
 
         Ok(writer.flush()?)
     }
 
-    dump(std::io::stdout(), &node_index, &layout_data)?;
+    dump(
+        std::io::stdout(),
+        args.range.is_some(),
+        &node_index,
+        &layout_data,
+    )?;
 
     Ok(())
 }
