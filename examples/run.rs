@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::fs::{self, File};
 use std::io::Write;
+use std::time::SystemTime;
 
 use clap::Parser;
 use fa2::{FA2Data, FA2Settings};
@@ -103,10 +104,21 @@ fn main() -> anyhow::Result<()> {
         let mut layout = settings.build(layout_data);
 
         for i in 0..args.iterations {
+            let now = if args.verbose {
+                Some(SystemTime::now())
+            } else {
+                None
+            };
+
             let movement = layout.epoch();
 
             if args.verbose {
-                eprintln!("Epoch n°{}, movement={}", i + 1, movement);
+                eprintln!(
+                    "Epoch n°{}, movement={}, time={:?}",
+                    i + 1,
+                    movement,
+                    now.unwrap().elapsed().unwrap()
+                );
             }
 
             if let Some(every) = args.dump_every {
