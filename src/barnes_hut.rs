@@ -126,7 +126,8 @@ impl<F: Float> BarnesHutTree<F> {
             max_x = min_x + dy;
         }
 
-        self.regions = vec![BarnesHutRegion::new_root(min_x, max_x, min_y, max_y)];
+        self.regions
+            .push(BarnesHutRegion::new_root(min_x, max_x, min_y, max_y));
     }
 
     pub fn read(&mut self, xs: &[F], ys: &[F], ms: &[F]) {
