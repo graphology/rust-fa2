@@ -43,6 +43,10 @@ struct Args {
     #[arg(short, long)]
     parallel: bool,
 
+    /// Number of threads to use
+    #[arg(short, long)]
+    threads: Option<usize>,
+
     #[arg(long)]
     range: Option<usize>,
 }
@@ -59,6 +63,13 @@ impl Args {
 
 fn main() -> anyhow::Result<()> {
     let args = Args::parse();
+
+    if let Some(threads) = args.threads {
+        rayon::ThreadPoolBuilder::new()
+            .num_threads(threads)
+            .build_global()
+            .unwrap();
+    }
 
     let file = File::open(&args.path)?;
 
