@@ -1,3 +1,5 @@
+use std::num::NonZeroUsize;
+
 use rayon::prelude::*;
 
 use crate::settings::FA2Settings;
@@ -45,7 +47,7 @@ pub struct BarnesHutTree<F: Float> {
     center_xs: Vec<F>,
     center_ys: Vec<F>,
     sizes: Vec<F>,
-    next_siblings: Vec<Option<usize>>,
+    next_siblings: Vec<Option<NonZeroUsize>>,
 }
 
 impl<F: Float> BarnesHutTree<F> {
@@ -66,7 +68,7 @@ impl<F: Float> BarnesHutTree<F> {
         center_x: F,
         center_y: F,
         size: F,
-        next_sibling: Option<usize>,
+        next_sibling: Option<NonZeroUsize>,
     ) {
         self.kinds.push(kind);
         self.center_xs.push(center_x);
@@ -215,7 +217,7 @@ impl<F: Float> BarnesHutTree<F> {
                             center_x - half_size,
                             center_y - half_size,
                             half_size,
-                            Some(l + 1),
+                            Some(unsafe { NonZeroUsize::new_unchecked(l + 1) }),
                         );
                         self.push_region(
                             if old_node_quadrant == Quadrant::BottomLeft {
@@ -226,7 +228,7 @@ impl<F: Float> BarnesHutTree<F> {
                             center_x - half_size,
                             center_y + half_size,
                             half_size,
-                            Some(l + 2),
+                            Some(unsafe { NonZeroUsize::new_unchecked(l + 2) }),
                         );
                         self.push_region(
                             if old_node_quadrant == Quadrant::TopRight {
@@ -237,7 +239,7 @@ impl<F: Float> BarnesHutTree<F> {
                             center_x + half_size,
                             center_y - half_size,
                             half_size,
-                            Some(l + 3),
+                            Some(unsafe { NonZeroUsize::new_unchecked(l + 3) }),
                         );
                         self.push_region(
                             if old_node_quadrant == Quadrant::BottomRight {
@@ -325,7 +327,7 @@ impl<F: Float> BarnesHutTree<F> {
 
                         // Moving to next sibling
                         if let Some(next_sibling_index) = self.next_siblings[region_index] {
-                            region_index = next_sibling_index;
+                            region_index = next_sibling_index.get();
                             continue;
                         } else {
                             break;
@@ -358,7 +360,7 @@ impl<F: Float> BarnesHutTree<F> {
 
                     // Moving to next sibling
                     if let Some(next_sibling_index) = self.next_siblings[region_index] {
-                        region_index = next_sibling_index;
+                        region_index = next_sibling_index.get();
                         continue;
                     } else {
                         break;
@@ -367,7 +369,7 @@ impl<F: Float> BarnesHutTree<F> {
 
                 RegionKind::Empty => {
                     if let Some(next_sibling_index) = self.next_siblings[region_index] {
-                        region_index = next_sibling_index;
+                        region_index = next_sibling_index.get();
                         continue;
                     } else {
                         break;
