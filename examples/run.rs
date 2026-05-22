@@ -65,6 +65,10 @@ fn main() -> anyhow::Result<()> {
     let args = Args::parse();
 
     if let Some(threads) = args.threads {
+        if args.verbose {
+            eprintln!("using {} threads", threads);
+        }
+
         rayon::ThreadPoolBuilder::new()
             .num_threads(threads)
             .build_global()
