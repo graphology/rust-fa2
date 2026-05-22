@@ -40,77 +40,51 @@ enum RegionKind<F: Float> {
 }
 
 #[derive(Debug, PartialEq)]
-struct BarnesHutRegion<F: Float> {
-    kind: RegionKind<F>,
-    center_x: F,
-    center_y: F,
-    size: F,
-    next_sibling: Option<usize>,
-}
-
-impl<F: Float> BarnesHutRegion<F> {
-    fn new_root(min_x: F, max_x: F, min_y: F, max_y: F) -> Self {
-        let two = F::from(2.0).unwrap();
-
-        Self {
-            kind: RegionKind::Empty,
-            center_x: (min_x + max_x) / two,
-            center_y: (min_y + max_y) / two,
-            size: (max_x - min_x).max(max_y - min_y),
-            next_sibling: None,
-        }
-    }
-
-    fn split(
-        &self,
-        from_index: usize,
-        parent_sibling: Option<usize>,
-        quadrant: Quadrant,
-        size: F,
-    ) -> Self {
-        let (next_sibling, center_x, center_y) = match quadrant {
-            Quadrant::TopLeft => (
-                Some(from_index + 1),
-                self.center_x - size,
-                self.center_y - size,
-            ),
-            Quadrant::BottomLeft => (
-                Some(from_index + 2),
-                self.center_x - size,
-                self.center_y + size,
-            ),
-            Quadrant::TopRight => (
-                Some(from_index + 3),
-                self.center_x + size,
-                self.center_y - size,
-            ),
-            Quadrant::BottomRight => (parent_sibling, self.center_x + size, self.center_y + size),
-        };
-
-        Self {
-            kind: RegionKind::Empty,
-            center_x,
-            center_y,
-            size,
-            next_sibling,
-        }
-    }
-}
-
-#[derive(Debug, PartialEq)]
 pub struct BarnesHutTree<F: Float> {
-    regions: Vec<BarnesHutRegion<F>>,
+    kinds: Vec<RegionKind<F>>,
+    center_xs: Vec<F>,
+    center_ys: Vec<F>,
+    sizes: Vec<F>,
+    next_siblings: Vec<Option<usize>>,
 }
 
 impl<F: Float> BarnesHutTree<F> {
     pub fn with_capacity(capacity: usize) -> Self {
         Self {
-            regions: Vec::with_capacity(capacity),
+            kinds: Vec::with_capacity(capacity),
+            center_xs: Vec::with_capacity(capacity),
+            center_ys: Vec::with_capacity(capacity),
+            sizes: Vec::with_capacity(capacity),
+            next_siblings: Vec::with_capacity(capacity),
         }
     }
 
+    #[inline]
+    fn push_region(
+        &mut self,
+        kind: RegionKind<F>,
+        center_x: F,
+        center_y: F,
+        size: F,
+        next_sibling: Option<usize>,
+    ) {
+        self.kinds.push(kind);
+        self.center_xs.push(center_x);
+        self.center_ys.push(center_y);
+        self.sizes.push(size);
+        self.next_siblings.push(next_sibling);
+    }
+
+    fn clear(&mut self) {
+        self.kinds.clear();
+        self.center_xs.clear();
+        self.center_ys.clear();
+        self.sizes.clear();
+        self.next_siblings.clear();
+    }
+
     pub fn reset_with_extent(&mut self, extent: (F, F, F, F)) {
-        self.regions.clear();
+        self.clear();
 
         let (mut min_x, mut max_x, mut min_y, mut max_y) = extent;
 
@@ -128,8 +102,13 @@ impl<F: Float> BarnesHutTree<F> {
             max_x = min_x + dy;
         }
 
-        self.regions
-            .push(BarnesHutRegion::new_root(min_x, max_x, min_y, max_y));
+        self.push_region(
+            RegionKind::Empty,
+            (min_x + max_x) / two,
+            (min_y + max_y) / two,
+            (max_x - min_x).max(max_y - min_y),
+            None,
+        );
     }
 
     pub fn read(&mut self, xs: &[F], ys: &[F], ms: &[F]) {
@@ -146,22 +125,23 @@ impl<F: Float> BarnesHutTree<F> {
             let m = ms[n];
 
             loop {
-                match self.regions[region_index].kind {
+                match self.kinds[region_index] {
                     RegionKind::Internal {
                         first_child: first_child_index,
                         ..
                     } => {
                         // There are sub-regions, we iterate to delve until we find a leaf
-                        let current_region = &mut self.regions[region_index];
+                        let center_x = self.center_xs[region_index];
+                        let center_y = self.center_ys[region_index];
 
                         // Finding the quadrant of n
-                        let quadrant = if x < current_region.center_x {
-                            if y < current_region.center_y {
+                        let quadrant = if x < center_x {
+                            if y < center_y {
                                 Quadrant::TopLeft
                             } else {
                                 Quadrant::BottomLeft
                             }
-                        } else if y < current_region.center_y {
+                        } else if y < center_y {
                             Quadrant::TopRight
                         } else {
                             Quadrant::BottomRight
@@ -173,7 +153,7 @@ impl<F: Float> BarnesHutTree<F> {
                             ref mut mass_center_x,
                             ref mut mass_center_y,
                             ..
-                        } = current_region.kind
+                        } = self.kinds[region_index]
                         {
                             *mass_center_x = (*mass_center_x * *mass + x * m) / (*mass + m);
                             *mass_center_y = (*mass_center_y * *mass + y * m) / (*mass + m);
@@ -185,114 +165,112 @@ impl<F: Float> BarnesHutTree<F> {
                     }
 
                     RegionKind::Leaf { node: region_node } => {
-                        // There is a node in this region so we will need
-                        // to create sub-regions
-                        let current_region = &mut self.regions[region_index];
-                        let half_size = current_region.size / two;
+                        let center_x = self.center_xs[region_index];
+                        let center_y = self.center_ys[region_index];
+                        let next_sibling = self.next_siblings[region_index];
+                        let half_size = self.sizes[region_index] / two;
 
-                        let mut top_left = current_region.split(
-                            l,
-                            current_region.next_sibling,
-                            Quadrant::TopLeft,
-                            half_size,
-                        );
-
-                        let mut bottom_left = current_region.split(
-                            l,
-                            current_region.next_sibling,
-                            Quadrant::BottomLeft,
-                            half_size,
-                        );
-
-                        let mut top_right = current_region.split(
-                            l,
-                            current_region.next_sibling,
-                            Quadrant::TopRight,
-                            half_size,
-                        );
-
-                        let mut bottom_right = current_region.split(
-                            l,
-                            current_region.next_sibling,
-                            Quadrant::BottomRight,
-                            half_size,
-                        );
-
-                        // Now we need to be able to put the two nodes in
-                        // different sub-regions
-
-                        // Finding old node's quadrant
                         let old_node_x = xs[region_node];
                         let old_node_y = ys[region_node];
                         let old_node_mass = ms[region_node];
 
-                        let old_node_quadrant = if old_node_x < current_region.center_x {
-                            if old_node_y < current_region.center_y {
-                                top_left.kind = RegionKind::Leaf { node: region_node };
+                        let old_node_quadrant = if old_node_x < center_x {
+                            if old_node_y < center_y {
                                 Quadrant::TopLeft
                             } else {
-                                bottom_left.kind = RegionKind::Leaf { node: region_node };
                                 Quadrant::BottomLeft
                             }
-                        } else if old_node_y < current_region.center_y {
-                            top_right.kind = RegionKind::Leaf { node: region_node };
+                        } else if old_node_y < center_y {
                             Quadrant::TopRight
                         } else {
-                            bottom_right.kind = RegionKind::Leaf { node: region_node };
                             Quadrant::BottomRight
                         };
 
-                        current_region.kind = RegionKind::Internal {
+                        let new_node_quadrant = if x < center_x {
+                            if y < center_y {
+                                Quadrant::TopLeft
+                            } else {
+                                Quadrant::BottomLeft
+                            }
+                        } else if y < center_y {
+                            Quadrant::TopRight
+                        } else {
+                            Quadrant::BottomRight
+                        };
+
+                        self.kinds[region_index] = RegionKind::Internal {
                             first_child: l,
                             mass: old_node_mass,
                             mass_center_x: old_node_x,
                             mass_center_y: old_node_y,
                         };
 
-                        // Finding the quadrant of n
-                        let new_node_quadrant = if x < current_region.center_x {
-                            if y < current_region.center_y {
-                                Quadrant::TopLeft
+                        // Pushing regions: TopLeft, BottomLeft, TopRight, BottomRight
+                        self.push_region(
+                            if old_node_quadrant == Quadrant::TopLeft {
+                                RegionKind::Leaf { node: region_node }
                             } else {
-                                Quadrant::BottomLeft
-                            }
-                        } else if y < current_region.center_y {
-                            Quadrant::TopRight
-                        } else {
-                            Quadrant::BottomRight
-                        };
-
-                        // Pushing regions
-                        self.regions.push(top_left);
-                        self.regions.push(bottom_left);
-                        self.regions.push(top_right);
-                        self.regions.push(bottom_right);
+                                RegionKind::Empty
+                            },
+                            center_x - half_size,
+                            center_y - half_size,
+                            half_size,
+                            Some(l + 1),
+                        );
+                        self.push_region(
+                            if old_node_quadrant == Quadrant::BottomLeft {
+                                RegionKind::Leaf { node: region_node }
+                            } else {
+                                RegionKind::Empty
+                            },
+                            center_x - half_size,
+                            center_y + half_size,
+                            half_size,
+                            Some(l + 2),
+                        );
+                        self.push_region(
+                            if old_node_quadrant == Quadrant::TopRight {
+                                RegionKind::Leaf { node: region_node }
+                            } else {
+                                RegionKind::Empty
+                            },
+                            center_x + half_size,
+                            center_y - half_size,
+                            half_size,
+                            Some(l + 3),
+                        );
+                        self.push_region(
+                            if old_node_quadrant == Quadrant::BottomRight {
+                                RegionKind::Leaf { node: region_node }
+                            } else {
+                                RegionKind::Empty
+                            },
+                            center_x + half_size,
+                            center_y + half_size,
+                            half_size,
+                            next_sibling,
+                        );
 
                         l += 4;
 
                         if old_node_quadrant == new_node_quadrant {
-                            // Both nodes fell in the same quadrant
                             subdivision_attempts -= 1;
 
                             if subdivision_attempts > 0 {
                                 region_index = old_node_quadrant.offset(l - 4);
                                 continue;
                             } else {
-                                // We are out of precision here, we break anyway
                                 break;
                             }
                         }
 
-                        // Quadrants are different
-                        self.regions[new_node_quadrant.offset(l - 4)].kind =
-                            RegionKind::Leaf { node: n };
-
+                        self.kinds[new_node_quadrant.offset(l - 4)] = RegionKind::Leaf { node: n };
                         break;
                     }
 
                     RegionKind::Empty => {
                         // There is no node in this region, we add it
-                        self.regions[region_index].kind = RegionKind::Leaf { node: n };
+                        self.kinds[region_index] = RegionKind::Leaf { node: n };
                         break;
                     }
                 }
@@ -315,14 +293,14 @@ impl<F: Float> BarnesHutTree<F> {
         let theta_squared = settings.unwrap_barnes_hut_theta().powi(2);
         let four = F::from(4.0).unwrap();
 
-        let mut current_region = &self.regions[0];
+        let mut region_index = 0;
 
         let x = xs[n];
         let y = ys[n];
         let m = ms[n];
 
         loop {
-            match current_region.kind {
+            match self.kinds[region_index] {
                 RegionKind::Internal {
                     first_child: first_child_index,
                     mass,
@@ -334,7 +312,7 @@ impl<F: Float> BarnesHutTree<F> {
 
                     let distance = x_dist * x_dist + y_dist * y_dist;
 
-                    let size = current_region.size;
+                    let size = self.sizes[region_index];
 
                     if (four * size * size) / distance < theta_squared {
                         // We treat the region as a single body for repulsion
@@ -346,15 +324,15 @@ impl<F: Float> BarnesHutTree<F> {
                         }
 
                         // Moving to next sibling
-                        if let Some(next_sibling_index) = current_region.next_sibling {
-                            current_region = &self.regions[next_sibling_index];
+                        if let Some(next_sibling_index) = self.next_siblings[region_index] {
+                            region_index = next_sibling_index;
                             continue;
                         } else {
                             break;
                         }
                     } else {
                         // This region is too close, we delve
-                        current_region = &self.regions[first_child_index];
+                        region_index = first_child_index;
                         continue;
                     }
                 }
@@ -379,8 +357,8 @@ impl<F: Float> BarnesHutTree<F> {
                     }
 
                     // Moving to next sibling
-                    if let Some(next_sibling_index) = current_region.next_sibling {
-                        current_region = &self.regions[next_sibling_index];
+                    if let Some(next_sibling_index) = self.next_siblings[region_index] {
+                        region_index = next_sibling_index;
                         continue;
                     } else {
                         break;
@@ -388,9 +366,8 @@ impl<F: Float> BarnesHutTree<F> {
                 }
 
                 RegionKind::Empty => {
-                    // Moving to next sibling
-                    if let Some(next_sibling_index) = current_region.next_sibling {
-                        current_region = &self.regions[next_sibling_index];
+                    if let Some(next_sibling_index) = self.next_siblings[region_index] {
+                        region_index = next_sibling_index;
                         continue;
                     } else {
                         break;
@@ -442,9 +419,9 @@ mod tests {
 
     impl<F: Float> BarnesHutTree<F> {
         fn nodes(&self) -> impl Iterator<Item = usize> + '_ {
-            self.regions.iter().flat_map(|region| {
-                if let RegionKind::Leaf { node } = region.kind {
-                    Some(node)
+            self.kinds.iter().flat_map(|kind| {
+                if let RegionKind::Leaf { node } = kind {
+                    Some(*node)
                 } else {
                     None
                 }
@@ -467,7 +444,7 @@ mod tests {
         tree.reset_with_extent(extent);
         tree.read(&data.xs, &data.ys, &data.ms);
 
-        assert_eq!(tree.regions.len(), 13);
+        assert_eq!(tree.kinds.len(), 13);
         assert_eq!(tree.nodes().collect::<Vec<_>>(), [4, 2, 3, 0]);
     }
 }
