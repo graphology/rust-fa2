@@ -1,6 +1,7 @@
 use crate::settings::FA2Settings;
 use crate::traits::Float;
 
+#[inline]
 pub fn apply_gravity_for_node<F: Float>(
     settings: &FA2Settings<F>,
     x: F,
