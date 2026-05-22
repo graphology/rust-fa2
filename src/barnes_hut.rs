@@ -394,6 +394,7 @@ impl<F: Float> BarnesHutTree<F> {
         }
     }
 
+    #[inline]
     pub fn par_apply_repulsion(
         &self,
         settings: &FA2Settings<F>,
