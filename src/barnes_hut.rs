@@ -1,3 +1,32 @@
+/// This Barnes-Hut implementation has been carefully designed to be
+/// as fast as possible and cache-friendly.
+///
+/// It has adaptative depth because fixed depth is demonstrably worse
+/// for layout quality (you would see hideous grid artifacts).
+///
+/// It also attempts to subdivide a cell at most 3 times before giving up,
+/// forgetting some unlucky nodes and not inserting them within a leaf.
+/// Mass accumulation would still happen so the node is not completely
+/// useless either. This can happen when two nodes are very very close
+/// or on the same exact point, and is necessary to avoid an infinite
+/// loop when building the tree. The tree is rebuilt per iteration anyway so
+/// this situation is never permanent.
+///
+/// The tree has a hybrid layout using an enum for node type (empty, internal
+/// or leaf), an a SoA scheme to store the tree's regions as vectors.
+/// Nodes are therefore not individually heap-allocated and pointer chasing is
+/// reduced to a minimum, as well as being cache-friendly.
+///
+/// Some indices are also kept using non-zero usizes to benefit from niche
+/// optimization and save memory to fit cache lines.
+///
+/// Note also that the structure was optimized for f32 in mind, less so for f64.
+///
+/// Here are some things that were tried but resulted in worse performance:
+///     - Full SoA layout (with masses, compact tag array etc.)
+///     - DFS reordering of the tree
+///     - Leaf buckets containing multiple nodes (e.g. 8 nodes at once)
+///
 use std::num::NonZeroUsize;
 
 use rayon::prelude::*;
