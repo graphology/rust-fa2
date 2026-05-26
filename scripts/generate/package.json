@@ -5,10 +5,13 @@
   "main": "index.js",
   "scripts": {
     "bench": "node bench.js",
+    "draw": "node draw.js",
     "start": "node index.js"
   },
   "dependencies": {
+    "canvas": "^3.2.3",
     "graphology": "^0.26.0",
+    "graphology-canvas": "^0.4.3",
     "graphology-generators": "^0.11.2",
     "graphology-layout": "^0.6.1",
     "graphology-layout-forceatlas2": "^0.10.1",
