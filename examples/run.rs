@@ -90,7 +90,7 @@ fn main() -> anyhow::Result<()> {
     let mut layout_data = FA2Data::<f32>::new();
 
     if let Some(n) = args.range {
-        for _ in 0..n + 1 {
+        for _ in 0..n {
             layout_data.add_node(rng.random(), rng.random());
         }
     }
