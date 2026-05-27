@@ -29,8 +29,6 @@
 ///
 use std::num::NonZeroUsize;
 
-use rayon::prelude::*;
-
 use crate::settings::FA2Settings;
 use crate::traits::Float;
 
@@ -310,7 +308,7 @@ impl<F: Float> BarnesHutTree<F> {
     }
 
     #[allow(clippy::too_many_arguments)]
-    fn apply_nodewise_repulsion(
+    pub(crate) fn apply_nodewise_repulsion(
         &self,
         settings: &FA2Settings<F>,
         n: usize,
@@ -406,40 +404,6 @@ impl<F: Float> BarnesHutTree<F> {
                 }
             }
         }
-    }
-
-    #[inline]
-    pub fn apply_repulsion(
-        &self,
-        settings: &FA2Settings<F>,
-        xs: &[F],
-        ys: &[F],
-        ms: &[F],
-        out_xs: &mut [F],
-        out_ys: &mut [F],
-    ) {
-        for n in 0..xs.len() {
-            self.apply_nodewise_repulsion(settings, n, xs, ys, ms, &mut out_xs[n], &mut out_ys[n]);
-        }
-    }
-
-    #[inline]
-    pub fn par_apply_repulsion(
-        &self,
-        settings: &FA2Settings<F>,
-        xs: &[F],
-        ys: &[F],
-        ms: &[F],
-        out_xs: &mut [F],
-        out_ys: &mut [F],
-    ) {
-        out_xs
-            .par_iter_mut()
-            .zip(out_ys.par_iter_mut())
-            .enumerate()
-            .for_each(|(n, (out_x, out_y))| {
-                self.apply_nodewise_repulsion(settings, n, xs, ys, ms, out_x, out_y);
-            });
     }
 }
 
