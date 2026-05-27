@@ -35,6 +35,20 @@ impl<F: Float> FA2Data<F> {
         Self::default()
     }
 
+    pub fn with_node_capacity(nodes: usize) -> Self {
+        Self {
+            xs: Vec::with_capacity(nodes),
+            ys: Vec::with_capacity(nodes),
+            ms: Vec::with_capacity(nodes),
+            delta_xs: Vec::with_capacity(nodes),
+            delta_ys: Vec::with_capacity(nodes),
+            old_delta_xs: Vec::with_capacity(nodes),
+            old_delta_ys: Vec::with_capacity(nodes),
+            convergences: Vec::with_capacity(nodes),
+            edges: Vec::new(),
+        }
+    }
+
     pub fn with_capacity(nodes: usize, edges: usize) -> Self {
         Self {
             xs: Vec::with_capacity(nodes),
@@ -151,6 +165,65 @@ impl<F: Float> FA2Data<F> {
     }
 }
 
+/// A romantic name for a variant of CSR matrix.
+#[derive(Debug)]
+pub(crate) struct NeighborhoodIndex<F: Float> {
+    node_offsets: Vec<usize>,
+    edge_stubs: Vec<(usize, F)>,
+}
+
+impl<'a, F: Float> From<&'a FA2Data<F>> for NeighborhoodIndex<F> {
+    fn from(data: &'a FA2Data<F>) -> Self {
+        // NOTE: we reserve an additional slot for convenience later when
+        // we need to lookup node adjacency lists.
+        let mut node_offsets = vec![0; data.order() + 1];
+
+        // First we aggregate degrees
+        for (source, target, _) in data.edges.iter() {
+            node_offsets[*source] += 1;
+            node_offsets[*target] += 1;
+        }
+
+        // We compute the cumulative sum
+        let mut cumsum: usize = 0;
+
+        for degree in node_offsets.iter_mut() {
+            cumsum += *degree;
+            *degree = cumsum;
+        }
+
+        // Then we populate stubs
+        let mut edge_stubs = vec![(0, F::zero()); data.size() * 2];
+
+        for (source, target, weight) in data.edges.iter() {
+            node_offsets[*source] -= 1;
+            node_offsets[*target] -= 1;
+
+            let source_index = node_offsets[*source];
+            let target_index = node_offsets[*target];
+
+            edge_stubs[source_index] = (*target, *weight);
+            edge_stubs[target_index] = (*source, *weight);
+        }
+
+        debug_assert!(matches!(node_offsets.last(), Some(d) if *d == data.size() * 2));
+
+        Self {
+            node_offsets,
+            edge_stubs,
+        }
+    }
+}
+
+impl<F: Float> NeighborhoodIndex<F> {
+    #[inline]
+    pub(crate) fn stubs(&self, node: usize) -> &[(usize, F)] {
+        debug_assert!(node < self.node_offsets.len().saturating_sub(1));
+
+        &self.edge_stubs[self.node_offsets[node]..self.node_offsets[node + 1]]
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -167,5 +240,29 @@ mod tests {
         let extent = data.positions_extent();
 
         assert_eq!(extent, Some((-1.0, 9.0, -3.0, 31.0)));
+    }
+
+    #[test]
+    fn test_neighborhood_index() {
+        let mut data = FA2Data::<f32>::new();
+
+        for _ in 0..5 {
+            data.add_node(0.0, 0.0);
+        }
+
+        data.add_edge(0, 1);
+        data.add_edge(0, 2);
+        data.add_edge_with_weight(0, 3, 4.0);
+        data.add_edge(2, 0);
+        data.add_edge(4, 1);
+        data.add_edge(2, 3);
+
+        let index = NeighborhoodIndex::from(&data);
+
+        assert_eq!(index.stubs(0), [(2, 1.0), (3, 4.0), (2, 1.0), (1, 1.0)]);
+        assert_eq!(index.stubs(1), [(4, 1.0), (0, 1.0)]);
+        assert_eq!(index.stubs(2), [(3, 1.0), (0, 1.0), (0, 1.0)]);
+        assert_eq!(index.stubs(3), [(2, 1.0), (0, 4.0)]);
+        assert_eq!(index.stubs(4), [(1, 1.0)]);
     }
 }
