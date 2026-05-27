@@ -1,3 +1,4 @@
+use crate::data::NeighborhoodIndex;
 use crate::settings::FA2Settings;
 use crate::traits::Float;
 
@@ -25,6 +26,30 @@ pub fn apply_attraction<F: Float>(
         out_ys[target] -= y_displacement;
     }
 }
+
+// TODO: we need the direction
+// pub fn apply_nodewise_attraction<F: Float>(
+//     settings: &FA2Settings<F>,
+//     index: &NeighborhoodIndex<F>,
+//     source: usize,
+//     xs: &[F],
+//     ys: &[F],
+//     out_x: &mut F,
+//     out_y: &mut F,
+// ) {
+//     let x = xs[source];
+//     let y = ys[source];
+
+//     for (target, weight) in index.stubs(source).iter().copied() {
+//         let factor = -weight.powf(settings.edge_weight_influence);
+
+//         let x_dist = x - xs[target];
+//         let y_dist = y - ys[target];
+
+//         let x_displacement = x_dist * factor;
+//         let y_displacement = y_dist * factor;
+//     }
+// }
 
 #[cfg(test)]
 mod tests {

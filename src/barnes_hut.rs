@@ -310,7 +310,7 @@ impl<F: Float> BarnesHutTree<F> {
     }
 
     #[allow(clippy::too_many_arguments)]
-    fn apply_repulsion_for_node(
+    fn apply_nodewise_repulsion(
         &self,
         settings: &FA2Settings<F>,
         n: usize,
@@ -419,7 +419,7 @@ impl<F: Float> BarnesHutTree<F> {
         out_ys: &mut [F],
     ) {
         for n in 0..xs.len() {
-            self.apply_repulsion_for_node(settings, n, xs, ys, ms, &mut out_xs[n], &mut out_ys[n]);
+            self.apply_nodewise_repulsion(settings, n, xs, ys, ms, &mut out_xs[n], &mut out_ys[n]);
         }
     }
 
@@ -438,7 +438,7 @@ impl<F: Float> BarnesHutTree<F> {
             .zip(out_ys.par_iter_mut())
             .enumerate()
             .for_each(|(n, (out_x, out_y))| {
-                self.apply_repulsion_for_node(settings, n, xs, ys, ms, out_x, out_y);
+                self.apply_nodewise_repulsion(settings, n, xs, ys, ms, out_x, out_y);
             });
     }
 }

@@ -2,6 +2,50 @@ use crate::settings::FA2Settings;
 use crate::traits::Float;
 
 #[allow(clippy::too_many_arguments)]
+#[inline]
+pub fn apply_nodewise_forces<F: Float>(
+    settings: &FA2Settings<F>,
+    x: &mut F,
+    y: &mut F,
+    m: F,
+    delta_x: F,
+    delta_y: F,
+    old_delta_x: F,
+    old_delta_y: F,
+    convergence: &mut F,
+) -> F {
+    let two = F::from(2.0).unwrap();
+
+    let mut swinging =
+        m * ((old_delta_x - delta_x).powi(2) + (old_delta_y - delta_y).powi(2)).sqrt();
+
+    swinging = F::one() + swinging.sqrt();
+
+    let traction = ((old_delta_x + delta_x).powi(2) + (old_delta_y + delta_y).powi(2)).sqrt() / two;
+
+    let mut speed = *convergence * traction.ln_1p() / swinging;
+
+    // Updating convergence
+    *convergence = (speed * ((delta_x.powi(2) + delta_y.powi(2)) / swinging))
+        .sqrt()
+        .min(F::one());
+
+    speed /= settings.slow_down;
+
+    // Updating node position
+    let new_x = *x + delta_x * speed;
+    let new_y = *y + delta_y * speed;
+
+    let movement = (*x - new_x).abs() + (*y - new_y).abs();
+
+    *x = new_x;
+    *y = new_y;
+
+    movement
+}
+
+#[allow(clippy::too_many_arguments)]
+#[inline]
 pub fn apply_forces<F: Float>(
     settings: &FA2Settings<F>,
     xs: &mut [F],
@@ -14,12 +58,11 @@ pub fn apply_forces<F: Float>(
     convergences: &mut [F],
 ) -> F {
     let mut total_movement = F::zero();
-    let two = F::from(2.0).unwrap();
 
     for (i, convergence) in convergences.iter_mut().enumerate() {
-        let x = xs[i];
-        let y = ys[i];
-        let mass = ms[i];
+        let x = &mut xs[i];
+        let y = &mut ys[i];
+        let m = ms[i];
 
         let delta_x = delta_xs[i];
         let delta_y = delta_ys[i];
@@ -27,30 +70,17 @@ pub fn apply_forces<F: Float>(
         let old_delta_x = old_delta_xs[i];
         let old_delta_y = old_delta_ys[i];
 
-        let mut swinging =
-            mass * ((old_delta_x - delta_x).powi(2) + (old_delta_y - delta_y).powi(2)).sqrt();
-        swinging = F::one() + swinging.sqrt();
-
-        let traction =
-            ((old_delta_x + delta_x).powi(2) + (old_delta_y + delta_y).powi(2)).sqrt() / two;
-
-        let mut speed = *convergence * traction.ln_1p() / swinging;
-
-        // Updating convergence
-        *convergence = (speed * ((delta_x.powi(2) + delta_y.powi(2)) / swinging))
-            .sqrt()
-            .min(F::one());
-
-        speed /= settings.slow_down;
-
-        // Updating node position
-        let new_x = x + delta_x * speed;
-        let new_y = y + delta_y * speed;
-
-        total_movement += (x - new_x).abs() + (y - new_y).abs();
-
-        xs[i] = new_x;
-        ys[i] = new_y;
+        total_movement += apply_nodewise_forces(
+            settings,
+            x,
+            y,
+            m,
+            delta_x,
+            delta_y,
+            old_delta_x,
+            old_delta_y,
+            convergence,
+        );
     }
 
     total_movement

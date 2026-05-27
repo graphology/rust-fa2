@@ -2,7 +2,7 @@ use crate::settings::FA2Settings;
 use crate::traits::Float;
 
 #[inline]
-pub fn apply_gravity_for_node<F: Float>(
+pub fn apply_nodewise_gravity<F: Float>(
     settings: &FA2Settings<F>,
     x: F,
     y: F,
@@ -44,7 +44,7 @@ pub fn apply_gravity<F: Float>(
         let y = ys[n];
         let m = ms[n];
 
-        apply_gravity_for_node(settings, x, y, m, &mut out_xs[n], &mut out_ys[n]);
+        apply_nodewise_gravity(settings, x, y, m, &mut out_xs[n], &mut out_ys[n]);
     }
 }
 
