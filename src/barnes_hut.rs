@@ -140,7 +140,7 @@ impl<F: Float> BarnesHutTree<F> {
         );
     }
 
-    pub fn read(&mut self, xs: &[F], ys: &[F], ms: &[F]) {
+    pub fn rebuild(&mut self, xs: &[F], ys: &[F], ms: &[F]) {
         let two = F::from(2.0).unwrap();
 
         let mut l: usize = 1;
@@ -438,7 +438,7 @@ mod tests {
 
         let mut tree = BarnesHutTree::with_capacity(5);
         tree.reset_with_extent(extent);
-        tree.read(&data.xs, &data.ys, &data.ms);
+        tree.rebuild(&data.xs, &data.ys, &data.ms);
 
         assert_eq!(tree.kinds.len(), 13);
         assert_eq!(tree.nodes().collect::<Vec<_>>(), [4, 2, 3, 0]);

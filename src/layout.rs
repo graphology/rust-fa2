@@ -52,7 +52,7 @@ impl<F: Float> FA2Layout<F> {
             if let RepulsionIndex::BarnesHut(tree) = &mut self.repulsion_index {
                 let extent = self.data.positions_extent().unwrap();
                 tree.reset_with_extent(extent);
-                tree.read(&self.data.xs, &self.data.ys, &self.data.ms);
+                tree.rebuild(&self.data.xs, &self.data.ys, &self.data.ms);
             }
 
             let neighborhood_index = self.neighborhood_index.as_ref().unwrap();
@@ -138,7 +138,7 @@ impl<F: Float> FA2Layout<F> {
                 RepulsionIndex::BarnesHut(tree) => {
                     let extent = self.data.positions_extent().unwrap();
                     tree.reset_with_extent(extent);
-                    tree.read(&self.data.xs, &self.data.ys, &self.data.ms);
+                    tree.rebuild(&self.data.xs, &self.data.ys, &self.data.ms);
 
                     for n in 0..self.data.xs.len() {
                         tree.apply_nodewise_repulsion(
