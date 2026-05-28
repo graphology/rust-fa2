@@ -1,3 +1,5 @@
+/// NOTE: I tried to perform attraction with SIMD but I could not observe a
+/// significant performance boost, even using AVX2.
 use crate::data::NeighborhoodIndex;
 use crate::settings::FA2Settings;
 use crate::traits::Float;
