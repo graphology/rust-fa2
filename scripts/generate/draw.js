@@ -5,7 +5,7 @@ const {renderToPNG} = require('graphology-canvas/node');
 const {scaleLog} = require('d3-scale');
 
 // 8192 for readable raster attempt
-const SIZE = 2048;
+const SIZE = 4096;
 
 let sizeScale = scaleLog([1, 10292203], [1, SIZE * 0.001]);
 
@@ -15,7 +15,7 @@ const graph = new Graph();
 
 let i = -1;
 
-DATA.split("\n").slice(0, 1_000_000).forEach(line => {
+DATA.split("\n").forEach(line => {
     if (i == -1) {
         i++;
         return;
@@ -30,7 +30,7 @@ DATA.split("\n").slice(0, 1_000_000).forEach(line => {
     degree = +degree || 1;
     let size = sizeScale(degree);
 
-    graph.addNode(i++, {x: +x, y: +y, size, label});
+    graph.addNode(i++, {x: +x, y: +y, size: 1, label, degree});
 });
 
 console.log(graph.order);
