@@ -49,6 +49,10 @@ struct Args {
 
     #[arg(long)]
     range: Option<usize>,
+
+    /// File containing earlier result to resume from
+    #[arg(long)]
+    resume: Option<String>,
 }
 
 impl Args {
@@ -121,6 +125,40 @@ fn main() -> anyhow::Result<()> {
             layout_data.order(),
             layout_data.size()
         );
+    }
+
+    if let Some(resume_path) = &args.resume {
+        if args.verbose {
+            eprintln!("resuming from {}", resume_path);
+        }
+
+        let mut resume_reader = simd_csv::Reader::from_reader(fs::File::open(resume_path)?);
+        let mut resume_record = simd_csv::ByteRecord::new();
+
+        let mut x_index = 1;
+        let mut y_index = 2;
+
+        if args.range.is_some() {
+            x_index -= 1;
+            y_index -= 1;
+        }
+
+        let mut i: usize = 0;
+
+        while resume_reader.read_byte_record(&mut resume_record)? {
+            let x: f32 = fast_float2::parse(&resume_record[x_index])?;
+            let y: f32 = fast_float2::parse(&resume_record[y_index])?;
+
+            layout_data.set_node_position(i, x, y);
+
+            i += 1;
+        }
+
+        assert!(i == layout_data.order());
+
+        if args.verbose {
+            eprintln!("updated {} node positions", i);
+        }
     }
 
     let mut settings =

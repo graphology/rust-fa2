@@ -90,6 +90,12 @@ impl<F: Float> FA2Data<F> {
     }
 
     #[inline]
+    pub fn set_node_position(&mut self, n: usize, x: F, y: F) {
+        self.xs[n] = x;
+        self.ys[n] = y;
+    }
+
+    #[inline]
     pub fn add_edge_with_weight(&mut self, i: usize, j: usize, weight: F) {
         self.ms[i] += weight;
         self.ms[j] += weight;
