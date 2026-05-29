@@ -3,7 +3,7 @@ use rayon::prelude::*;
 use crate::attraction::{apply_attraction, apply_nodewise_attraction};
 use crate::barnes_hut::BarnesHutTree;
 use crate::data::{FA2Data, NeighborhoodIndex};
-use crate::forces::apply_forces;
+use crate::forces::{apply_forces, apply_nodewise_forces};
 use crate::gravity::{apply_gravity, apply_nodewise_gravity};
 use crate::repulsion::{apply_nodewise_repulsion, apply_pairwise_repulsion};
 use crate::settings::{FA2Settings, RepulsionMode};
@@ -110,17 +110,26 @@ impl<F: Float> FA2Layout<F> {
                     );
                 });
 
-            apply_forces(
-                &self.settings,
-                &mut self.data.xs,
-                &mut self.data.ys,
-                &self.data.ms,
-                &self.data.delta_xs,
-                &self.data.delta_ys,
-                &self.data.old_delta_xs,
-                &self.data.old_delta_ys,
-                &mut self.data.convergences,
-            )
+            self.data
+                .xs
+                .par_iter_mut()
+                .zip(self.data.ys.par_iter_mut())
+                .zip(self.data.convergences.par_iter_mut())
+                .enumerate()
+                .map(|(n, ((x, y), c))| {
+                    apply_nodewise_forces(
+                        &self.settings,
+                        x,
+                        y,
+                        self.data.ms[n],
+                        self.data.delta_xs[n],
+                        self.data.delta_ys[n],
+                        self.data.old_delta_xs[n],
+                        self.data.old_delta_ys[n],
+                        c,
+                    )
+                })
+                .sum()
         }
         // Sequential path
         else {
