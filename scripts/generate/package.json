@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "canvas": "^3.2.3",
+    "d3-scale": "^3",
     "graphology": "^0.26.0",
     "graphology-canvas": "^0.4.3",
     "graphology-generators": "^0.11.2",
