@@ -27,7 +27,7 @@ struct Args {
     #[arg(long)]
     dump_every: Option<usize>,
 
-    /// Just apply a circular layout and exit
+    /// Start from a circular layout
     #[arg(long)]
     circular: bool,
 
@@ -143,41 +143,41 @@ fn main() -> anyhow::Result<()> {
 
     if args.circular {
         layout_data.apply_circular_layout();
-    } else {
-        let mut layout = settings.build(layout_data);
+    }
 
-        for i in 0..args.iterations {
-            let now = if args.verbose {
-                Some(SystemTime::now())
-            } else {
-                None
-            };
+    let mut layout = settings.build(layout_data);
 
-            let movement = layout.epoch();
+    for i in 0..args.iterations {
+        let now = if args.verbose {
+            Some(SystemTime::now())
+        } else {
+            None
+        };
 
-            if args.verbose {
-                eprintln!(
-                    "Epoch n°{}, movement={}, time={:?}",
-                    i + 1,
-                    movement,
-                    now.unwrap().elapsed().unwrap()
-                );
-            }
+        let movement = layout.epoch();
 
-            if let Some(every) = args.dump_every {
-                if i % every == 0 {
-                    dump(
-                        File::create(&format!("dump/{:>05}.csv", i))?,
-                        args.range.is_some(),
-                        &node_index,
-                        layout.data(),
-                    )?;
-                }
-            }
+        if args.verbose {
+            eprintln!(
+                "Epoch n°{}, movement={}, time={:?}",
+                i + 1,
+                movement,
+                now.unwrap().elapsed().unwrap()
+            );
         }
 
-        layout_data = layout.into_data();
+        if let Some(every) = args.dump_every {
+            if i % every == 0 {
+                dump(
+                    File::create(&format!("dump/{:>05}.csv", i))?,
+                    args.range.is_some(),
+                    &node_index,
+                    layout.data(),
+                )?;
+            }
+        }
     }
+
+    layout_data = layout.into_data();
 
     fn dump<W: Write>(
         w: W,
