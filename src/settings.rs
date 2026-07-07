@@ -8,6 +8,7 @@ pub(crate) enum RepulsionMode<F: Float> {
     BarnesHut { theta: F },
 }
 
+/// Struct representing a settings of the FA2 layout algorithm.
 #[derive(Debug, Clone)]
 pub struct FA2Settings<F: Float> {
     pub(crate) repulsion_mode: RepulsionMode<F>,
@@ -22,6 +23,11 @@ pub struct FA2Settings<F: Float> {
 }
 
 impl<F: Float> Default for FA2Settings<F> {
+    /// Instantiate default settings for the FA2 algorithm. That is to say
+    /// paiwise repulsion, an `edge_weight_influence` of 1, a `gravity` of 1
+    /// no `strong_gravity_mode`, a `scaling_ratio` of 1, a `slow_down` of 1
+    /// and single-threaded.
+    ///
     // Ref: https://github.com/graphology/graphology/blob/master/src/layout-forceatlas2/defaults.js
     fn default() -> Self {
         Self {
@@ -39,6 +45,9 @@ impl<F: Float> Default for FA2Settings<F> {
 }
 
 impl<F: Float> FA2Settings<F> {
+    /// Automatically inferring suitable settings based on a graph's order (its
+    /// number of nodes).
+    ///
     // Ref: https://github.com/graphology/graphology/blob/249ec5e668ff5e89bf37a10330981579f8759525/src/layout-forceatlas2/index.js#L87
     pub fn from_graph_order(order: usize) -> Self {
         Self {
@@ -57,21 +66,27 @@ impl<F: Float> FA2Settings<F> {
         }
     }
 
+    /// Set the layout to run in parallel (using multiple threads).
     pub fn parallel(mut self, yes: bool) -> Self {
         self.parallel = yes;
         self
     }
 
+    /// Set the layout to use pairwise repulsion (`O(n²)`).
     pub fn with_pairwise_repulsion(mut self) -> Self {
         self.repulsion_mode = RepulsionMode::Pairwise;
         self
     }
 
+    /// Set the layout to use Barnes-Hut repulsion using the provided theta
+    /// parameter (`O(n log(n))`).
     pub fn with_barnes_hut_theta(mut self, theta: F) -> Self {
         self.repulsion_mode = RepulsionMode::BarnesHut { theta };
         self
     }
 
+    /// Set the layout to use Barnes-Hut repulsion using the default `0.5` theta
+    /// parameter (`O(n log(n))`).
     pub fn with_barnes_hut(self) -> Self {
         self.with_barnes_hut_theta(F::from(0.5).unwrap())
     }
@@ -83,6 +98,7 @@ impl<F: Float> FA2Settings<F> {
         }
     }
 
+    /// Build a [`FA2Layout`] layout runner wrapping given [`FA2Data`].
     pub fn build(self, data: FA2Data<F>) -> FA2Layout<F> {
         FA2Layout::new(self, data)
     }

@@ -23,6 +23,10 @@ impl<F: Float> RepulsionIndex<F> {
     }
 }
 
+/// The struct responsible for actually running the iterations of the FA2
+/// algorithm.
+///
+/// It must be built from a [`FA2Settings`], using some [`FA2Data`].
 pub struct FA2Layout<F: Float> {
     settings: FA2Settings<F>,
     data: FA2Data<F>,

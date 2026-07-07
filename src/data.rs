@@ -1,6 +1,8 @@
 // Ref: https://github.com/graphology/graphology/blob/master/src/layout-forceatlas2/helpers.js
 use crate::traits::Float;
 
+/// A struct holding the data necessary to represent a graph that will be
+/// spatialized by the FA2 algorithm.
 #[derive(Debug)]
 pub struct FA2Data<F: Float> {
     pub(crate) xs: Vec<F>,
@@ -31,10 +33,13 @@ impl<F: Float> Default for FA2Data<F> {
 }
 
 impl<F: Float> FA2Data<F> {
+    /// Create an empty [`FA2Data`] instance.
     pub fn new() -> Self {
         Self::default()
     }
 
+    /// Create an empty [`FA2Data`] instance fitting a given number of nodes
+    /// before resizing inner allocations.
     pub fn with_node_capacity(nodes: usize) -> Self {
         Self {
             xs: Vec::with_capacity(nodes),
@@ -49,6 +54,8 @@ impl<F: Float> FA2Data<F> {
         }
     }
 
+    /// Create an empty [`FA2Data`] instance fitting a given number of nodes
+    /// and edges before resizing inner allocations.
     pub fn with_capacity(nodes: usize, edges: usize) -> Self {
         Self {
             xs: Vec::with_capacity(nodes),
@@ -63,14 +70,17 @@ impl<F: Float> FA2Data<F> {
         }
     }
 
+    /// Return the order of represented graph, i.e. its number of nodes.
     pub fn order(&self) -> usize {
         self.xs.len()
     }
 
+    /// Return the size of represented graph, i.e. its number of edges.
     pub fn size(&self) -> usize {
         self.edges.len()
     }
 
+    /// Add a node with given position.
     pub fn add_node(&mut self, x: F, y: F) -> usize {
         let index = self.order();
 
@@ -89,12 +99,14 @@ impl<F: Float> FA2Data<F> {
         index
     }
 
+    /// Set target node's position.
     #[inline]
     pub fn set_node_position(&mut self, n: usize, x: F, y: F) {
         self.xs[n] = x;
         self.ys[n] = y;
     }
 
+    /// Add an edge with given weight.
     #[inline]
     pub fn add_edge_with_weight(&mut self, i: usize, j: usize, weight: F) {
         self.ms[i] += weight;
@@ -103,6 +115,7 @@ impl<F: Float> FA2Data<F> {
         self.edges.push((i, j, weight));
     }
 
+    /// Add an edge with a default weight of `1`.
     #[inline]
     pub fn add_edge(&mut self, i: usize, j: usize) {
         self.add_edge_with_weight(i, j, F::one());
