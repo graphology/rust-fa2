@@ -36,3 +36,7 @@ layout.run(100);
 // Retrieving positions
 layout.data().positions()
 ```
+
+For a command line tool able to run this implementation of the algorithm and/or
+to read a real-life example, check out the [`run`](https://github.com/graphology/rust-fa2/blob/master/examples/run.rs)
+example of this crate.
