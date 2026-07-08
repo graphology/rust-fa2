@@ -95,7 +95,7 @@ fn main() -> anyhow::Result<()> {
 
     if let Some(n) = args.range {
         for _ in 0..n {
-            layout_data.add_node(rng.random(), rng.random());
+            layout_data.add_node();
         }
     }
 
@@ -107,12 +107,12 @@ fn main() -> anyhow::Result<()> {
             (btoi(source)?, btoi(target)?)
         } else {
             (
-                *node_index
-                    .entry(source.to_vec())
-                    .or_insert_with(|| layout_data.add_node(rng.random(), rng.random())),
-                *node_index
-                    .entry(target.to_vec())
-                    .or_insert_with(|| layout_data.add_node(rng.random(), rng.random())),
+                *node_index.entry(source.to_vec()).or_insert_with(|| {
+                    layout_data.add_node_with_position(rng.random(), rng.random())
+                }),
+                *node_index.entry(target.to_vec()).or_insert_with(|| {
+                    layout_data.add_node_with_position(rng.random(), rng.random())
+                }),
             )
         };
 

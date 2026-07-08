@@ -19,11 +19,11 @@ fn les_miserables(weighted: bool) -> FA2Data<f32> {
 
         let source_id = *nodes
             .entry(source.to_vec())
-            .or_insert_with(|| data.add_node(0.0, 0.0));
+            .or_insert_with(|| data.add_node());
 
         let target_id = *nodes
             .entry(target.to_vec())
-            .or_insert_with(|| data.add_node(0.0, 0.0));
+            .or_insert_with(|| data.add_node());
 
         data.add_edge_with_weight(
             source_id,

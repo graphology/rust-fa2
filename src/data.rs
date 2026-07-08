@@ -81,7 +81,9 @@ impl<F: Float> FA2Data<F> {
     }
 
     /// Add a node with given position.
-    pub fn add_node(&mut self, x: F, y: F) -> usize {
+    ///
+    /// Return the index of added node.
+    pub fn add_node_with_position(&mut self, x: F, y: F) -> usize {
         let index = self.order();
 
         self.xs.push(x);
@@ -97,6 +99,19 @@ impl<F: Float> FA2Data<F> {
         self.convergences.push(F::one());
 
         index
+    }
+
+    /// Add node with a `(0.0, 0.0)` position. This is useful when building the
+    /// graph and assigning starting node positions must be done in separate
+    /// steps, e.g. when using [`Self::apply_circular_layout`], but don't
+    /// forget to actually give starting poisitions to your nodes (even random ones),
+    /// because the FA2 algorithm will not work properly if all nodes start on the
+    /// same point.
+    ///
+    /// Return the index of added node.
+    #[inline(always)]
+    pub fn add_node(&mut self) -> usize {
+        self.add_node_with_position(F::zero(), F::zero())
     }
 
     /// Set target node's position.
@@ -253,11 +268,11 @@ mod tests {
     #[test]
     fn test_positions_extent() {
         let mut data = FA2Data::<f32>::new();
-        data.add_node(1.0, -3.0);
-        data.add_node(-1.0, 4.0);
-        data.add_node(6.0, 1.0);
-        data.add_node(9.0, 31.0);
-        data.add_node(1.0, 3.0);
+        data.add_node_with_position(1.0, -3.0);
+        data.add_node_with_position(-1.0, 4.0);
+        data.add_node_with_position(6.0, 1.0);
+        data.add_node_with_position(9.0, 31.0);
+        data.add_node_with_position(1.0, 3.0);
 
         let extent = data.positions_extent();
 
@@ -269,7 +284,7 @@ mod tests {
         let mut data = FA2Data::<f32>::new();
 
         for _ in 0..5 {
-            data.add_node(0.0, 0.0);
+            data.add_node_with_position(0.0, 0.0);
         }
 
         data.add_edge(0, 1);

@@ -428,11 +428,11 @@ mod tests {
     #[test]
     fn test_construction() {
         let mut data = FA2Data::new();
-        data.add_node(1.0, 9.0);
-        data.add_node(-1.0, 8.0);
-        data.add_node(4.0, 1.0);
-        data.add_node(9.0, 10.0);
-        data.add_node(3.0, 0.0);
+        data.add_node_with_position(1.0, 9.0);
+        data.add_node_with_position(-1.0, 8.0);
+        data.add_node_with_position(4.0, 1.0);
+        data.add_node_with_position(9.0, 10.0);
+        data.add_node_with_position(3.0, 0.0);
 
         let extent = data.positions_extent().unwrap();
 
