@@ -12,7 +12,7 @@ or `f64`.
 
 *Running the algorithm*
 
-```
+```rust
 // First you need to populate the graph data on which the algorithm will run:
 let mut data = FA2Data::<f32>::new();
 
