@@ -121,6 +121,7 @@ impl<F: Float> FA2Data<F> {
         self.add_edge_with_weight(i, j, F::one());
     }
 
+    /// Return an iterator over node positions as `(x, y)` tuples.
     pub fn positions(&self) -> impl Iterator<Item = (F, F)> + '_ {
         self.xs.iter().zip(self.ys.iter()).map(|(x, y)| (*x, *y))
     }
@@ -167,6 +168,8 @@ impl<F: Float> FA2Data<F> {
         }
     }
 
+    /// Apply a circular layout to node positions. This can be a good deterministic
+    /// starting point for a FA2 layout.
     pub fn apply_circular_layout(&mut self) {
         let tau = F::TAU();
         let order = F::from(self.order()).unwrap();

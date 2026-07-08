@@ -26,6 +26,8 @@ impl<F: Float> RepulsionIndex<F> {
 /// The struct responsible for actually running the iterations of the FA2
 /// algorithm.
 ///
+/// It is generic over float precision.
+///
 /// It must be built from a [`FA2Settings`], using some [`FA2Data`].
 pub struct FA2Layout<F: Float> {
     settings: FA2Settings<F>,
@@ -48,6 +50,7 @@ impl<F: Float> FA2Layout<F> {
         }
     }
 
+    /// Run a single iteration, or "epoch", of the FA2 algorithm.
     pub fn epoch(&mut self) -> F {
         self.data.reset();
 
@@ -195,14 +198,17 @@ impl<F: Float> FA2Layout<F> {
         }
     }
 
+    /// Return a reference to the wrapped [`FA2Data`] instance.
     pub fn data(&self) -> &FA2Data<F> {
         &self.data
     }
 
+    /// Unwrap inner [`FA2Data`] instance, disposing of this [`FA2Layout`] runner.
     pub fn into_data(self) -> FA2Data<F> {
         self.data
     }
 
+    /// Run given number of iterations of the FA2 algorithm.
     pub fn run(&mut self, iterations: usize) {
         for _ in 0..iterations {
             self.epoch();
