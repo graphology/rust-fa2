@@ -91,6 +91,36 @@ impl<F: Float> FA2Settings<F> {
         self.with_barnes_hut_theta(F::from(0.5).unwrap())
     }
 
+    /// Set the `edge_weight_influence` setting. Defaults to `1.0`.
+    pub fn edge_weight_influence(mut self, edge_weight_influence: F) -> Self {
+        self.edge_weight_influence = edge_weight_influence;
+        self
+    }
+
+    /// Set the `gravity` setting. Defaults to `1.0`.
+    pub fn gravity(mut self, gravity: F) -> Self {
+        self.gravity = gravity;
+        self
+    }
+
+    /// Set the `gravity` setting. Defaults to `1.0`.
+    pub fn scaling_ratio(mut self, scaling_ratio: F) -> Self {
+        self.scaling_ratio = scaling_ratio;
+        self
+    }
+
+    /// Set the `slow_down` setting. Defaults to `1.0`.
+    pub fn slow_down(mut self, slow_down: F) -> Self {
+        self.slow_down = slow_down;
+        self
+    }
+
+    /// Set whether to use stronger gravity. Defaults to no.
+    pub fn strong_gravity_mode(mut self, yes: bool) -> Self {
+        self.strong_gravity_mode = yes;
+        self
+    }
+
     pub(crate) fn unwrap_barnes_hut_theta(&self) -> F {
         match &self.repulsion_mode {
             RepulsionMode::BarnesHut { theta } => *theta,
